@@ -6,8 +6,8 @@ type PaymentOverviewPanelProps = {
   overview: PaymentOverview;
   hint?: string;
   footnote?: string;
-  /** Dashboard only: stack breakdown rows below 376px */
-  variant?: "default" | "dashboard";
+  /** Dashboard: stack breakdown rows below 376px. Payment: same for /rent, /maintenance, /expenses. */
+  variant?: "default" | "dashboard" | "payment";
 };
 
 export function PaymentOverviewPanel({
@@ -33,6 +33,7 @@ export function PaymentOverviewPanel({
         className={[
           "ui-stat-grid",
           variant === "dashboard" ? "ui-stat-grid-dashboard" : "",
+          variant === "payment" ? "ui-stat-grid-payment" : "",
         ]
           .filter(Boolean)
           .join(" ")}

@@ -26,12 +26,19 @@ function PanelHeaderSkeleton({ action = false }: { action?: boolean }) {
   );
 }
 
-function StatGridSkeleton({ dashboard = false }: { dashboard?: boolean }) {
+function StatGridSkeleton({
+  dashboard = false,
+  payment = false,
+}: {
+  dashboard?: boolean;
+  payment?: boolean;
+}) {
   return (
     <div
       className={[
         "ui-stat-grid",
         dashboard ? "ui-stat-grid-dashboard" : "",
+        payment ? "ui-stat-grid-payment" : "",
       ]
         .filter(Boolean)
         .join(" ")}
@@ -46,14 +53,20 @@ function StatGridSkeleton({ dashboard = false }: { dashboard?: boolean }) {
   );
 }
 
-function SummaryPanelSkeleton({ dashboard = false }: { dashboard?: boolean }) {
+function SummaryPanelSkeleton({
+  dashboard = false,
+  payment = false,
+}: {
+  dashboard?: boolean;
+  payment?: boolean;
+}) {
   return (
     <Panel aria-busy="true" aria-label="주거비 정보 불러오는 중">
       <Skeleton className="h-3 w-16" />
       <Skeleton className="mt-2 h-4 w-24" />
       <Skeleton className="ui-summary-total mt-2 h-10 w-36 max-w-full md:h-12" />
       <div className="mt-4">
-        <StatGridSkeleton dashboard={dashboard} />
+        <StatGridSkeleton dashboard={dashboard} payment={payment} />
       </div>
       <Skeleton className="mt-3 h-4 w-40" />
     </Panel>
@@ -157,7 +170,7 @@ export function PaymentPageLoadingSkeleton({
       <PaymentTabNavSkeleton />
 
       <div className="ui-payment-panels">
-        <SummaryPanelSkeleton />
+        <SummaryPanelSkeleton payment />
         <ListPanelSkeleton rows={3} />
       </div>
     </div>

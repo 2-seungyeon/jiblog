@@ -52,6 +52,7 @@ export default async function RentPage() {
       ) : (
         <div className="ui-payment-panels">
           <PaymentOverviewPanel
+            variant="payment"
             overview={overview}
             footnote={maintenanceFootnote}
           />

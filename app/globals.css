@@ -334,19 +334,23 @@ body {
   }
 
   @media (max-width: 375px) {
-    .ui-stat-grid-dashboard {
-      @apply grid-cols-1 gap-1;
+    .ui-stat-grid-dashboard,
+    .ui-stat-grid-payment {
+      @apply mt-2 grid-cols-1 gap-2 border-t-0 pt-0;
     }
 
-    .ui-stat-grid-dashboard .ui-stat-cell {
-      @apply flex items-center justify-between gap-3 space-y-0 py-2;
+    .ui-stat-grid-dashboard .ui-stat-cell,
+    .ui-stat-grid-payment .ui-stat-cell {
+      @apply flex items-center justify-between gap-3 space-y-0;
     }
 
-    .ui-stat-grid-dashboard .ui-stat-cell-label {
+    .ui-stat-grid-dashboard .ui-stat-cell-label,
+    .ui-stat-grid-payment .ui-stat-cell-label {
       @apply shrink-0;
     }
 
-    .ui-stat-grid-dashboard .ui-stat-cell-value {
+    .ui-stat-grid-dashboard .ui-stat-cell-value,
+    .ui-stat-grid-payment .ui-stat-cell-value {
       @apply min-w-0 shrink text-right;
       white-space: nowrap;
     }

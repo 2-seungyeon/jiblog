@@ -70,6 +70,7 @@ export default async function ExpensesPage() {
       ) : (
         <div className="ui-payment-panels">
           <PaymentOverviewPanel
+            variant="payment"
             overview={overview}
             footnote={maintenanceFootnote}
           />

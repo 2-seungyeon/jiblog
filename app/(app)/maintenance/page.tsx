@@ -61,6 +61,7 @@ export default async function MaintenancePage() {
       ) : (
         <div className="ui-payment-panels">
           <PaymentOverviewPanel
+            variant="payment"
             overview={overview}
             hint={
               maintenanceData.payments.some((p) => p.status === "예정")

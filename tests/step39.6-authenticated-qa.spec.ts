@@ -78,16 +78,15 @@ for (const width of GRID_WIDTHS) {
   });
 }
 
-test.describe("STEP 39.6 regression — payment pages keep default stat grid", () => {
+test.describe("STEP 39.6 regression — payment pages do not use dashboard class", () => {
   test.use({ viewport: { width: 320, height: 812 } });
 
   for (const path of ["/rent", "/maintenance", "/expenses"] as const) {
-    test(`${path} keeps three-column overview`, async ({ page }) => {
+    test(`${path} does not use dashboard stat grid class`, async ({ page }) => {
       await gotoAppPage(page, path);
       const grid = page.locator(".ui-stat-grid").first();
       await expect(grid).toBeVisible();
       await expect(grid).not.toHaveClass(/ui-stat-grid-dashboard/);
-      expect(await getGridColumnCount(page)).toBe(3);
       await assertNoHorizontalScroll(page);
     });
   }
