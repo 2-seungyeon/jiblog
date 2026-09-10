@@ -2,14 +2,11 @@
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
-import { useToast } from "@/components/providers/toast-provider";
 import { signUpAction, type SignUpFieldErrors } from "@/lib/actions/auth";
-import { getActionErrorMessage } from "@/lib/utils/toast-messages";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export function SignUpForm() {
-  const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<SignUpFieldErrors>({});
@@ -30,7 +27,6 @@ export function SignUpForm() {
 
       if (result.error) {
         setError(result.error);
-        toast.error(getActionErrorMessage(result.error));
       }
 
       setLoading(false);

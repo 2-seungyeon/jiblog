@@ -44,7 +44,7 @@ export default defineConfig({
       : []),
     ...viewports.map((viewport) => ({
       name: `${viewport.width}`,
-      testMatch: /(step37-qa|step38\.5-signup|ui-smoke)\.spec\.ts/,
+      testMatch: /(step37-qa|step38\.5-signup|step39-signup|ui-smoke)\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
         viewport,
@@ -54,7 +54,8 @@ export default defineConfig({
       ? [
           {
             name: "authenticated",
-            testMatch: /step38(?:\.5)?-authenticated-qa\.spec\.ts/,
+            testMatch:
+              /step3[89](?:\.5)?-authenticated-qa\.spec\.ts|step39-logout\.spec\.ts/,
             dependencies: ["setup"],
             fullyParallel: false,
             use: {

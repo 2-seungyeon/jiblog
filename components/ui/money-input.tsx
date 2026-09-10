@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState, type ChangeEvent } from "react";
-import { FormField } from "@/components/ui/form-field";
+import { FormField, getFormFieldDescribedById } from "@/components/ui/form-field";
 import { fieldClassName, fieldErrorClassName } from "@/components/ui/field-styles";
 import { formatAmountInput, parseAmountInput } from "@/lib/utils/format";
 
@@ -30,6 +30,7 @@ export function MoneyInput({
 }: MoneyInputProps) {
   const generatedId = useId();
   const inputId = `${generatedId}-money`;
+  const describedBy = getFormFieldDescribedById(inputId, error, helperText);
   const [displayValue, setDisplayValue] = useState(() =>
     formatAmountInput(defaultValue),
   );
@@ -61,6 +62,7 @@ export function MoneyInput({
           disabled={disabled}
           required={required && !disabled}
           aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy}
           className={[
             fieldClassName,
             "pr-10",

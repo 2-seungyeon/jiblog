@@ -84,7 +84,7 @@ export function HomeNewForm({ defaultIsPrimary }: HomeNewFormProps) {
           name="isPrimary"
           defaultChecked={defaultIsPrimary}
           label="이 집을 대표 집으로 설정"
-          helperText="대표 집은 Dashboard와 납부 화면에서 우선 표시돼요."
+          helperText="대표 집은 대시보드와 납부 화면에서 우선 표시돼요."
         />
         <Textarea
           name="memo"

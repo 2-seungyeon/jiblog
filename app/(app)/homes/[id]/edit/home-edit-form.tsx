@@ -98,8 +98,8 @@ export function HomeEditForm({ home }: HomeEditFormProps) {
           label="이 집을 대표 집으로 설정"
           helperText={
             home.isPrimary
-              ? "대표 집은 다른 집을 대표로 지정해야 해제할 수 있어요. Dashboard와 납부 화면에서 우선 표시돼요."
-              : "대표 집은 Dashboard와 납부 화면에서 우선 표시돼요."
+              ? "대표 집은 다른 집을 대표로 지정해야 해제할 수 있어요. 대시보드와 납부 화면에서 우선 표시돼요."
+              : "대표 집은 대시보드와 납부 화면에서 우선 표시돼요."
           }
         />
         {home.isPrimary ? (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, type TextareaHTMLAttributes } from "react";
-import { FormField } from "@/components/ui/form-field";
+import { FormField, getFormFieldDescribedById } from "@/components/ui/form-field";
 import { fieldErrorClassName, textareaClassName } from "@/components/ui/field-styles";
 
 export type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
@@ -22,6 +22,7 @@ export function Textarea({
 }: TextareaProps) {
   const generatedId = useId();
   const textareaId = id ?? generatedId;
+  const describedBy = getFormFieldDescribedById(textareaId, error, helperText);
 
   return (
     <FormField
@@ -36,6 +37,7 @@ export function Textarea({
         disabled={disabled}
         required={required}
         aria-invalid={error ? true : undefined}
+        aria-describedby={describedBy}
         className={[
           textareaClassName,
           error ? fieldErrorClassName : "",

@@ -45,7 +45,16 @@ function ToastViewport({
       aria-relevant="additions text"
     >
       {toasts.map((toast) => (
-        <div key={toast.id} role="status" className="ui-toast">
+        <div
+          key={toast.id}
+          role={toast.variant === "error" ? "alert" : "status"}
+          className={[
+            "ui-toast",
+            toast.variant === "error" ? "ui-toast-error" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
           <p className="ui-toast-message">{toast.message}</p>
           <button
             type="button"

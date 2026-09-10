@@ -10,6 +10,26 @@ export type FormFieldProps = {
   className?: string;
 };
 
+export function getFormFieldDescribedById(
+  htmlFor: string | undefined,
+  error?: string,
+  helperText?: string,
+): string | undefined {
+  if (!htmlFor) {
+    return undefined;
+  }
+
+  if (error) {
+    return `${htmlFor}-error`;
+  }
+
+  if (helperText) {
+    return `${htmlFor}-helper`;
+  }
+
+  return undefined;
+}
+
 export function FormField({
   label,
   htmlFor,

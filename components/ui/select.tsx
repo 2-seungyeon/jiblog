@@ -8,7 +8,7 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
-import { FormField } from "@/components/ui/form-field";
+import { FormField, getFormFieldDescribedById } from "@/components/ui/form-field";
 import { fieldClassName, fieldErrorClassName } from "@/components/ui/field-styles";
 
 export type SelectOption = {
@@ -66,6 +66,7 @@ export function Select({
 }: SelectProps) {
   const generatedId = useId();
   const selectId = id ?? generatedId;
+  const describedBy = getFormFieldDescribedById(selectId, error, helperText);
   const listboxId = `${selectId}-listbox`;
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -189,6 +190,8 @@ export function Select({
           aria-controls={listboxId}
           aria-haspopup="listbox"
           aria-activedescendant={open ? activeOptionId : undefined}
+          aria-describedby={describedBy}
+          aria-invalid={error ? true : undefined}
           disabled={disabled}
           onClick={() => setOpen((prev) => !prev)}
           onKeyDown={handleKeyDown}

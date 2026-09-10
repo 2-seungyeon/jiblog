@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { DayPicker } from "react-day-picker";
 import { ko } from "date-fns/locale";
 
-import { FormField } from "@/components/ui/form-field";
+import { FormField, getFormFieldDescribedById } from "@/components/ui/form-field";
 import { fieldClassName, fieldErrorClassName } from "@/components/ui/field-styles";
 import { getKSTToday } from "@/lib/utils/date";
 import {
@@ -55,6 +55,7 @@ export function DateInput({
 }: DateInputProps) {
   const generatedId = useId();
   const inputId = `${generatedId}-date`;
+  const describedBy = getFormFieldDescribedById(inputId, error);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isoValue, setIsoValue] = useState(defaultValue);
   const [open, setOpen] = useState(false);
@@ -113,6 +114,7 @@ export function DateInput({
           disabled={disabled}
           aria-expanded={open}
           aria-haspopup="dialog"
+          aria-describedby={describedBy}
           onClick={() => setOpen((prev) => !prev)}
           className={[
             fieldClassName,

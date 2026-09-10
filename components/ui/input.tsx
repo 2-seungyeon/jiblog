@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, type InputHTMLAttributes } from "react";
-import { FormField } from "@/components/ui/form-field";
+import { FormField, getFormFieldDescribedById } from "@/components/ui/form-field";
 import { fieldClassName, fieldErrorClassName } from "@/components/ui/field-styles";
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -22,6 +22,7 @@ export function Input({
 }: InputProps) {
   const generatedId = useId();
   const inputId = id ?? generatedId;
+  const describedBy = getFormFieldDescribedById(inputId, error, helperText);
 
   return (
     <FormField
@@ -36,6 +37,7 @@ export function Input({
         disabled={disabled}
         required={required}
         aria-invalid={error ? true : undefined}
+        aria-describedby={describedBy}
         className={[
           fieldClassName,
           "placeholder:text-text-tertiary",
