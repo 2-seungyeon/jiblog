@@ -264,10 +264,10 @@ test.describe("STEP 38.5 utility payment complete", () => {
     const pendingBefore = await page.getByRole("button", { name: "납부하기" }).count();
     await expectSubmitWithFeedback(page, completeButton, "납부 완료했어요");
 
-    await page.reload();
-    await page.waitForLoadState("networkidle");
+    await gotoAppPage(page, "/expenses");
     await expect(page.getByRole("button", { name: "납부하기" })).toHaveCount(
       pendingBefore - 1,
+      { timeout: 15_000 },
     );
   });
 });

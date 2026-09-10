@@ -6,12 +6,15 @@ type PaymentOverviewPanelProps = {
   overview: PaymentOverview;
   hint?: string;
   footnote?: string;
+  /** Dashboard only: stack breakdown rows below 376px */
+  variant?: "default" | "dashboard";
 };
 
 export function PaymentOverviewPanel({
   overview,
   hint,
   footnote,
+  variant = "default",
 }: PaymentOverviewPanelProps) {
   const defaultHint =
     overview.scheduledCount > 0
@@ -26,7 +29,14 @@ export function PaymentOverviewPanel({
       <p className="mt-1 text-base text-text-secondary">이번 달 주거비</p>
       <p className="ui-summary-total mt-2">{formatWon(overview.totalAmount)}</p>
 
-      <div className="ui-stat-grid">
+      <div
+        className={[
+          "ui-stat-grid",
+          variant === "dashboard" ? "ui-stat-grid-dashboard" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
         <div className="ui-stat-cell">
           <p className="ui-stat-cell-label">월세</p>
           <p className="ui-stat-cell-value">

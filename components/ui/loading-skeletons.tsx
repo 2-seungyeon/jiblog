@@ -26,9 +26,16 @@ function PanelHeaderSkeleton({ action = false }: { action?: boolean }) {
   );
 }
 
-function StatGridSkeleton() {
+function StatGridSkeleton({ dashboard = false }: { dashboard?: boolean }) {
   return (
-    <div className="ui-stat-grid">
+    <div
+      className={[
+        "ui-stat-grid",
+        dashboard ? "ui-stat-grid-dashboard" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       {Array.from({ length: 3 }).map((_, index) => (
         <div key={index} className="ui-stat-cell space-y-2">
           <Skeleton className="h-3 w-10" />
@@ -39,14 +46,14 @@ function StatGridSkeleton() {
   );
 }
 
-function SummaryPanelSkeleton() {
+function SummaryPanelSkeleton({ dashboard = false }: { dashboard?: boolean }) {
   return (
     <Panel aria-busy="true" aria-label="주거비 정보 불러오는 중">
       <Skeleton className="h-3 w-16" />
       <Skeleton className="mt-2 h-4 w-24" />
       <Skeleton className="ui-summary-total mt-2 h-10 w-36 max-w-full md:h-12" />
       <div className="mt-4">
-        <StatGridSkeleton />
+        <StatGridSkeleton dashboard={dashboard} />
       </div>
       <Skeleton className="mt-3 h-4 w-40" />
     </Panel>
@@ -86,7 +93,7 @@ export function DashboardLoadingSkeleton() {
   return (
     <div className="ui-page" aria-busy="true" aria-label="대시보드 불러오는 중">
       <Skeleton className="h-4 w-56 max-w-full" />
-      <SummaryPanelSkeleton />
+      <SummaryPanelSkeleton dashboard />
       <ListPanelSkeleton rows={2} />
       <Panel aria-busy="true" aria-label="계약 정보 불러오는 중">
         <PanelHeaderSkeleton action />

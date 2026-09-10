@@ -333,6 +333,25 @@ body {
     @apply text-lg font-bold tabular-nums text-text-primary;
   }
 
+  @media (max-width: 375px) {
+    .ui-stat-grid-dashboard {
+      @apply grid-cols-1 gap-1;
+    }
+
+    .ui-stat-grid-dashboard .ui-stat-cell {
+      @apply flex items-center justify-between gap-3 space-y-0 py-2;
+    }
+
+    .ui-stat-grid-dashboard .ui-stat-cell-label {
+      @apply shrink-0;
+    }
+
+    .ui-stat-grid-dashboard .ui-stat-cell-value {
+      @apply min-w-0 shrink text-right;
+      white-space: nowrap;
+    }
+  }
+
   .ui-card {
     @apply rounded-lg border border-border-default bg-surface p-4;
   }

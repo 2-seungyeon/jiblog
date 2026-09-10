@@ -294,6 +294,7 @@ export default async function DashboardPage() {
       data.primaryHome ? (
         <>
           <PaymentOverviewPanel
+            variant="dashboard"
             overview={toPaymentOverview(data.monthlySummary)}
             footnote={getMaintenanceOverviewFootnote(
               data.monthlySummary.maintenanceAmount,
