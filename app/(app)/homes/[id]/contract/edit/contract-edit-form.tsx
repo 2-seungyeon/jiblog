@@ -10,6 +10,7 @@ import {
   type HomeContractDetail,
 } from "@/lib/types/homes";
 import { toFormDate } from "@/lib/utils/homes";
+import { getContractEndDateHelperText } from "@/lib/utils/contract-guidance";
 import { TOAST_MESSAGES } from "@/lib/utils/toast-messages";
 import { Button } from "@/components/ui/button";
 import { DateInput } from "@/components/ui/date-input";
@@ -95,13 +96,20 @@ export function ContractEditForm({
           defaultValue={toFormDate(contract.startDate)}
           error={errors.startDate}
         />
-        <DateInput
-          name="endDate"
-          label="계약 종료일"
-          required
-          defaultValue={toFormDate(contract.endDate)}
-          error={errors.endDate}
-        />
+        <div className="space-y-1.5">
+          <DateInput
+            name="endDate"
+            label="계약 종료일"
+            required
+            defaultValue={toFormDate(contract.endDate)}
+            error={errors.endDate}
+          />
+          {!errors.endDate ? (
+            <p className="ui-form-helper">
+              {getContractEndDateHelperText(isRenewal ? "renewal" : "edit")}
+            </p>
+          ) : null}
+        </div>
       </FormSection>
 
       <FormSection title="금액 정보">

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
 import { Tag } from "@/components/ui/tag";
 import { ContractStatusBadgeFromEndDate } from "@/components/ui/contract-status-badge";
-import { ContractStatusBanner } from "@/components/ui/contract-status-banner";
+import { ContractHomeDetailGuidance } from "@/components/contract/contract-guidance-panel";
 import { DEFAULT_RENT_DUE_DAY } from "@/lib/constants/app";
 import { formatWon } from "@/lib/utils/format";
 import {
@@ -121,7 +121,7 @@ function ContractSection({
       </div>
 
       {needsBanner ? (
-        <ContractStatusBanner status={expiryStatus} className="mt-4" />
+        <ContractHomeDetailGuidance homeId={homeId} status={expiryStatus} />
       ) : null}
 
       <div className="ui-panel-divider mt-4 divide-y divide-border-default">
