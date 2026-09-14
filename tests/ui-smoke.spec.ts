@@ -5,6 +5,8 @@ import path from "node:path";
 const publicRoutes = [
   { name: "login", path: "/login" },
   { name: "signup", path: "/signup" },
+  { name: "confirm-email", path: "/signup/confirm-email?status=new" },
+  { name: "email-confirmed", path: "/signup/email-confirmed" },
 ] as const;
 
 const authRedirectRoutes = [

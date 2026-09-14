@@ -10,6 +10,7 @@ export function SignUpForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<SignUpFieldErrors>({});
+  const [emailValue, setEmailValue] = useState("");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -57,8 +58,24 @@ export function SignUpForm() {
           type="email"
           autoComplete="email"
           required
+          value={emailValue}
+          onChange={(event) => setEmailValue(event.target.value)}
           error={errors.email}
         />
+        {errors.email ===
+        "이미 가입 요청이 완료되었습니다. 이메일 인증을 완료해주세요." ? (
+          <p className="text-sm text-text-secondary">
+            <Link
+              href={`/signup/confirm-email?${new URLSearchParams({
+                email: emailValue.trim(),
+                status: "pending",
+              }).toString()}`}
+              className="ui-link font-medium"
+            >
+              이메일 인증 안내 페이지로 이동
+            </Link>
+          </p>
+        ) : null}
         <Input
           name="password"
           label="비밀번호"

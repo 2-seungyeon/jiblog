@@ -11,4 +11,12 @@ export type SignUpResult =
 
 export type AuthFormResult =
   | { success: true }
+  | {
+      success: false;
+      error: string;
+      confirmEmailUrl?: string;
+    };
+
+export type ResendConfirmationResult =
+  | { success: true }
   | { success: false; error: string };

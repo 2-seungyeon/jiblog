@@ -56,5 +56,9 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  if (user && pathname === "/signup/email-confirmed") {
+    return supabaseResponse;
+  }
+
   return supabaseResponse;
 }

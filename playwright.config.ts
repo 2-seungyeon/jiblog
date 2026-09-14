@@ -44,7 +44,7 @@ export default defineConfig({
       : []),
     ...viewports.map((viewport) => ({
       name: `${viewport.width}`,
-      testMatch: /(step37-qa|step38\.5-signup|step39-signup|ui-smoke)\.spec\.ts/,
+      testMatch: /(step37-qa|step38\.5-signup|step39-signup|step41-signup|ui-smoke)\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
         viewport,

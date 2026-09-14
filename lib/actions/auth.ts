@@ -5,13 +5,19 @@ import { redirect } from "next/navigation";
 import { checkExistingEmailSignup } from "@/lib/auth/signup-check";
 import { syncPrismaUser } from "@/lib/auth/user";
 import { createClient } from "@/lib/supabase/server";
-import type { AuthFormResult, SignUpFieldErrors, SignUpResult } from "@/lib/types/auth";
+import type {
+  AuthFormResult,
+  ResendConfirmationResult,
+  SignUpFieldErrors,
+  SignUpResult,
+} from "@/lib/types/auth";
 import {
   AUTH_MESSAGES,
   isDuplicateSignUpUser,
   isEmailNotConfirmedError,
   isValidEmail,
 } from "@/lib/utils/auth-validation";
+import { getEmailConfirmationRedirectUrl } from "@/lib/utils/site-url";
 
 export type { AuthFormResult, SignUpFieldErrors, SignUpResult } from "@/lib/types/auth";
 
@@ -66,6 +72,7 @@ export async function signUpAction(formData: FormData): Promise<SignUpResult> {
     password,
     options: {
       data: { name },
+      emailRedirectTo: getEmailConfirmationRedirectUrl(),
     },
   });
 
@@ -123,7 +130,12 @@ export async function loginAction(formData: FormData): Promise<AuthFormResult> {
 
   if (error) {
     if (isEmailNotConfirmedError(error)) {
-      return { success: false, error: AUTH_MESSAGES.emailNotConfirmed };
+      const params = new URLSearchParams({ email, status: "pending" });
+      return {
+        success: false,
+        error: AUTH_MESSAGES.emailNotConfirmed,
+        confirmEmailUrl: `/signup/confirm-email?${params.toString()}`,
+      };
     }
 
     return { success: false, error: AUTH_MESSAGES.invalidCredentials };
@@ -148,4 +160,33 @@ export async function logoutAction(): Promise<void> {
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/login");
+}
+
+export async function resendConfirmationEmailAction(
+  email: string,
+): Promise<ResendConfirmationResult> {
+  const trimmedEmail = email.trim();
+
+  if (!trimmedEmail) {
+    return { success: false, error: "이메일을 입력해주세요" };
+  }
+
+  if (!isValidEmail(trimmedEmail)) {
+    return { success: false, error: "올바른 이메일 형식이 아니에요" };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email: trimmedEmail,
+    options: {
+      emailRedirectTo: getEmailConfirmationRedirectUrl(),
+    },
+  });
+
+  if (error) {
+    return { success: false, error: "인증 메일을 다시 보내지 못했어요. 잠시 후 다시 시도해주세요." };
+  }
+
+  return { success: true };
 }

@@ -48,9 +48,18 @@ export function LoginForm() {
           required
         />
         {state && !state.success ? (
-          <p className="text-sm text-error" role="alert">
-            {state.error}
-          </p>
+          <div className="space-y-2">
+            <p className="text-sm text-error" role="alert">
+              {state.error}
+            </p>
+            {state.confirmEmailUrl ? (
+              <p className="text-sm text-text-secondary">
+                <Link href={state.confirmEmailUrl} className="ui-link font-medium">
+                  이메일 인증 안내 페이지로 이동
+                </Link>
+              </p>
+            ) : null}
+          </div>
         ) : null}
         <Button type="submit" loading={isPending} className="w-full">
           로그인
