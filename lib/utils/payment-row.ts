@@ -2,9 +2,21 @@ import type { ExpensePaymentStatus, RentPaymentStatus } from "@/lib/types/homes"
 
 type PaymentRowStatus = RentPaymentStatus | ExpensePaymentStatus;
 
-export function getPaymentRowClassName(status: PaymentRowStatus): string {
-  return [
-    "ui-row-list-item",
-    status === "완료" ? "ui-row-list-item-done" : "ui-row-list-item-pending",
-  ].join(" ");
+type PaymentRowOptions = {
+  overdue?: boolean;
+};
+
+export function getPaymentRowClassName(
+  status: PaymentRowStatus,
+  options: PaymentRowOptions = {},
+): string {
+  if (status === "완료") {
+    return ["ui-row-list-item", "ui-row-list-item-done"].join(" ");
+  }
+
+  if (options.overdue) {
+    return ["ui-row-list-item", "ui-row-list-item-overdue"].join(" ");
+  }
+
+  return ["ui-row-list-item", "ui-row-list-item-pending"].join(" ");
 }

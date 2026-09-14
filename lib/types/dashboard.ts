@@ -41,6 +41,7 @@ export type UpcomingPayment = {
   relativeDate: string;
   status: string;
   homeNickname: string;
+  overdue: boolean;
 };
 
 export type DashboardData = {

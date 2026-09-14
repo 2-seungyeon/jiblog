@@ -10,6 +10,7 @@ import {
   sortRentPayments,
 } from "@/lib/utils/rent-display";
 import { PaymentListItemLayout } from "@/components/ui/payment-list-item-layout";
+import { isPaymentOverdue } from "@/lib/utils/payment-overdue";
 import { getPaymentRowClassName } from "@/lib/utils/payment-row";
 
 type RentPaymentListProps = {
@@ -32,16 +33,22 @@ export function RentPaymentList({ payments }: RentPaymentListProps) {
       {sortedPayments.map((payment) => {
         const displayStatus = getDisplayStatus(payment.id, payment.status);
         const isCompleted = displayStatus === "완료";
+        const overdue = isPaymentOverdue(
+          displayStatus,
+          payment.yearMonth,
+          payment.dueDay,
+        );
 
         return (
           <li key={payment.id}>
-            <div className={getPaymentRowClassName(displayStatus)}>
+            <div className={getPaymentRowClassName(displayStatus, { overdue })}>
               <PaymentListItemLayout
                 title={payment.homeNickname}
                 contextLine={payment.contractType}
                 amount={payment.amount}
                 metaLine={formatRentDueDateMeta(payment)}
                 status={displayStatus}
+                overdue={overdue}
                 action={
                   !isCompleted ? (
                     <PaymentCompleteButton

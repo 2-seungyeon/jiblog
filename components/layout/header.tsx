@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AppBrand } from "@/components/layout/app-brand";
 import { LogoutButton } from "@/components/layout/logout-button";
 import { desktopNavItems, isNavActive } from "@/components/layout/nav-config";
+import Link from "next/link";
 
 export function Header() {
   const pathname = usePathname();
@@ -12,20 +12,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-10 hidden h-(--header-height) border-b border-border-default bg-surface md:block">
       <div className="mx-auto flex h-full max-w-3xl items-center justify-between gap-4 px-6">
-        <Link
-          href="/dashboard"
-          className="inline-flex shrink-0 items-center gap-2 rounded-md text-lg font-bold text-text-primary no-underline transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600/40 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
-        >
-          <Image
-            src="/favicon.ico"
-            alt=""
-            width={28}
-            height={28}
-            className="size-7 shrink-0 rounded-sm"
-            aria-hidden
-          />
-          <span>집로그</span>
-        </Link>
+        <AppBrand className="shrink-0" />
 
         <div className="ui-header-actions">
           <nav aria-label="주요 메뉴" className="ui-nav-pill-group">

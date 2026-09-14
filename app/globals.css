@@ -55,6 +55,7 @@
 
   /* Payment status & action */
   --color-payment-pending: var(--color-primary-600);
+  --color-payment-overdue: var(--color-error);
   --color-payment-done: #929e98;
   --radius-payment-status: 6px;
   --color-payment-action-bg: var(--color-surface);
@@ -286,6 +287,12 @@ body {
     background-color: var(--color-payment-pending);
   }
 
+  .ui-payment-status-overdue {
+    @apply inline-flex w-auto shrink-0 self-start px-2.5 py-0.5 text-xs font-semibold text-text-inverse;
+    border-radius: var(--radius-payment-status);
+    background-color: var(--color-payment-overdue);
+  }
+
   .ui-payment-status-done {
     @apply inline-flex w-auto shrink-0 self-start px-2.5 py-0.5 text-xs font-semibold text-text-inverse;
     border-radius: var(--radius-payment-status);
@@ -402,6 +409,7 @@ body {
   }
 
   .ui-row-list-item-pending,
+  .ui-row-list-item-overdue,
   .ui-row-list-item-done {
     @apply py-3.5;
   }
@@ -523,6 +531,11 @@ body {
 
   .ui-payment-list-extra {
     @apply text-xs text-text-tertiary;
+  }
+
+  .ui-payment-list-extra-overdue {
+    @apply font-medium;
+    color: var(--color-payment-overdue);
   }
 
   .ui-payment-list-aside {

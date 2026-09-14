@@ -137,14 +137,16 @@ function TodoPanel({
         <ul className="ui-row-list-in-panel">
           {payments.slice(0, 5).map((payment) => (
             <li key={`${payment.type}-${payment.homeNickname}-${payment.dueDate}`}>
-              <div className={getPaymentRowClassName("예정")}>
+              <div className={getPaymentRowClassName("예정", { overdue: payment.overdue })}>
                 <PaymentListItemLayout
                   title={payment.homeNickname}
                   contextLine={payment.type}
                   amount={payment.amount}
                   metaLine={`납부 예정일 ${payment.dueDate}`}
                   metaExtra={payment.relativeDate}
+                  metaExtraOverdue={payment.overdue}
                   status="예정"
+                  overdue={payment.overdue}
                 />
               </div>
             </li>

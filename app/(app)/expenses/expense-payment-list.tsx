@@ -10,6 +10,7 @@ import {
   sortExpensePayments,
 } from "@/lib/utils/expense-display";
 import { PaymentListItemLayout } from "@/components/ui/payment-list-item-layout";
+import { isPaymentOverdue } from "@/lib/utils/payment-overdue";
 import { getPaymentRowClassName } from "@/lib/utils/payment-row";
 
 type ExpensePaymentListProps = {
@@ -32,16 +33,23 @@ export function ExpensePaymentList({ payments }: ExpensePaymentListProps) {
       {sortedPayments.map((payment) => {
         const displayStatus = getDisplayStatus(payment.id, payment.status);
         const isCompleted = displayStatus === "완료";
+        const overdue = isPaymentOverdue(
+          displayStatus,
+          payment.yearMonth,
+          payment.dueDay,
+        );
 
         return (
           <li key={payment.id}>
-            <div className={getPaymentRowClassName(displayStatus)}>
+            <div className={getPaymentRowClassName(displayStatus, { overdue })}>
               <PaymentListItemLayout
                 title={payment.homeNickname}
                 contextLine={payment.category}
                 amount={payment.amount}
                 metaLine={formatExpenseDueDateMeta(payment)}
                 status={displayStatus}
+                statusKind="expense"
+                overdue={overdue}
                 action={
                   !isCompleted ? (
                     <PaymentCompleteButton

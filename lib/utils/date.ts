@@ -90,5 +90,5 @@ export function formatRelativeDueDay(
     return `${diffDays}일 후`;
   }
 
-  return `${Math.abs(diffDays)}일 전`;
+  return `${Math.abs(diffDays)}일 지연`;
 }

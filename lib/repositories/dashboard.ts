@@ -27,6 +27,7 @@ import {
   getCurrentYearMonthLabel,
   getKSTToday,
 } from "@/lib/utils/date";
+import { isScheduledPaymentOverdue } from "@/lib/utils/payment-overdue";
 import { calculatePaymentSummary } from "@/lib/utils/payment-summary";
 import { splitExpensePayments } from "@/lib/utils/payment-category";
 import { isRentPaymentBillable } from "@/lib/utils/contract-status";
@@ -268,14 +269,17 @@ export async function getDashboardData(): Promise<DashboardData> {
       continue;
     }
 
+    const overdue = isScheduledPaymentOverdue("예정", yearMonth, payment.dueDay);
+
     upcomingItems.push({
       type: "월세",
       amount: payment.amount,
       dueDate: formatDueDateLabel(yearMonth, payment.dueDay),
       relativeDate: formatRelativeDueDay(yearMonth, payment.dueDay),
-      status: "납부 예정",
+      status: overdue ? "납부 지연" : "납부 예정",
       homeNickname: payment.home.nickname,
       dueDay: payment.dueDay,
+      overdue,
     });
   }
 
@@ -284,27 +288,37 @@ export async function getDashboardData(): Promise<DashboardData> {
       continue;
     }
 
+    const overdue = isScheduledPaymentOverdue("예정", yearMonth, payment.dueDay);
+
     upcomingItems.push({
       type: EXPENSE_CATEGORY_LABEL[payment.category],
       amount: payment.amount,
       dueDate: formatDueDateLabel(yearMonth, payment.dueDay),
       relativeDate: formatRelativeDueDay(yearMonth, payment.dueDay),
-      status: "납부 예정",
+      status: overdue ? "납부 지연" : "납부 예정",
       homeNickname: payment.home.nickname,
       dueDay: payment.dueDay,
+      overdue,
     });
   }
 
-  upcomingItems.sort((a, b) => a.dueDay - b.dueDay);
+  upcomingItems.sort((a, b) => {
+    if (a.overdue !== b.overdue) {
+      return a.overdue ? -1 : 1;
+    }
+
+    return a.dueDay - b.dueDay;
+  });
 
   const upcomingPayments: UpcomingPayment[] = upcomingItems.map(
-    ({ type, amount, dueDate, relativeDate, status, homeNickname }) => ({
+    ({ type, amount, dueDate, relativeDate, status, homeNickname, overdue }) => ({
       type,
       amount,
       dueDate,
       relativeDate,
       status,
       homeNickname,
+      overdue,
     }),
   );
 
