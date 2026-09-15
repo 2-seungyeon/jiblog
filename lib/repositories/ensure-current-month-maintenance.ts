@@ -2,7 +2,6 @@ import "server-only";
 
 import { ContractStatus, ExpenseCategory, PaymentStatus } from "@prisma/client";
 
-import { DEFAULT_RENT_DUE_DAY } from "@/lib/constants/app";
 import { prisma } from "@/lib/prisma";
 import { isContractEligibleForMaintenance } from "@/lib/utils/contract-status";
 import { formatDateFromDb, getCurrentYearMonth } from "@/lib/utils/date";
@@ -26,6 +25,7 @@ export async function ensureCurrentMonthMaintenancePayments(
         select: {
           maintenanceFee: true,
           endDate: true,
+          maintenanceDueDay: true,
         },
       },
     },
@@ -53,7 +53,7 @@ export async function ensureCurrentMonthMaintenancePayments(
         yearMonth,
         category: ExpenseCategory.MAINTENANCE,
         amount: home.contract.maintenanceFee,
-        dueDay: DEFAULT_RENT_DUE_DAY,
+        dueDay: home.contract.maintenanceDueDay,
         status: PaymentStatus.SCHEDULED,
       },
     ];

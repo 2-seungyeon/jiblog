@@ -110,6 +110,8 @@ export function toContractDetail(contract: Contract): HomeContractDetail {
     deposit: contract.deposit,
     monthlyRent: contract.monthlyRent,
     maintenanceFee: contract.maintenanceFee,
+    rentDueDay: contract.rentDueDay,
+    maintenanceDueDay: contract.maintenanceDueDay,
     status: CONTRACT_STATUS_LABEL[contract.status],
   };
 }

@@ -41,7 +41,6 @@ const EXPENSE_CATEGORY: Record<string, ExpenseCategory> = {
 };
 
 const CURRENT_RENT_YEAR_MONTH = "2026-03";
-const DEFAULT_RENT_DUE_DAY = 5;
 
 async function main() {
   await prisma.home.upsert({
@@ -122,6 +121,8 @@ async function main() {
       deposit: 10_000_000,
       monthlyRent: 500_000,
       maintenanceFee: 80_000,
+      rentDueDay: 25,
+      maintenanceDueDay: 10,
       status: ContractStatus.ACTIVE,
     },
     update: {
@@ -131,6 +132,8 @@ async function main() {
       deposit: 10_000_000,
       monthlyRent: 500_000,
       maintenanceFee: 80_000,
+      rentDueDay: 25,
+      maintenanceDueDay: 10,
       status: ContractStatus.ACTIVE,
     },
   });
@@ -146,6 +149,8 @@ async function main() {
       deposit: 150_000_000,
       monthlyRent: 0,
       maintenanceFee: 120_000,
+      rentDueDay: 5,
+      maintenanceDueDay: 10,
       status: ContractStatus.ACTIVE,
     },
     update: {
@@ -155,6 +160,8 @@ async function main() {
       deposit: 150_000_000,
       monthlyRent: 0,
       maintenanceFee: 120_000,
+      rentDueDay: 5,
+      maintenanceDueDay: 10,
       status: ContractStatus.ACTIVE,
     },
   });
@@ -171,12 +178,12 @@ async function main() {
       homeId: "home-1",
       yearMonth: CURRENT_RENT_YEAR_MONTH,
       amount: 500_000,
-      dueDay: DEFAULT_RENT_DUE_DAY,
+      dueDay: 25,
       status: PAYMENT_STATUS["예정"],
     },
     update: {
       amount: 500_000,
-      dueDay: DEFAULT_RENT_DUE_DAY,
+      dueDay: 25,
       status: PAYMENT_STATUS["예정"],
     },
   });
@@ -187,7 +194,7 @@ async function main() {
       homeId: "home-1",
       category: "관리비" as const,
       amount: 80_000,
-      dueDay: 10,
+      dueDay: 25,
     },
     {
       id: "expense-2",

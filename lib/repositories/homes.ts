@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   ContractStatus,
+  ExpenseCategory,
   PaymentStatus,
   type Contract,
   type ExpensePayment,
@@ -11,7 +12,6 @@ import {
 
 import { requireUser } from "@/lib/auth/user";
 import { prisma } from "@/lib/prisma";
-import { DEFAULT_RENT_DUE_DAY } from "@/lib/constants/app";
 import { ensureCurrentMonthRentPayments } from "@/lib/repositories/ensure-current-month-rent";
 import {
   getCurrentYearMonth,
@@ -317,6 +317,8 @@ export async function createContract(
         deposit: input.deposit,
         monthlyRent,
         maintenanceFee: input.maintenanceFee,
+        rentDueDay: input.rentDueDay,
+        maintenanceDueDay: input.maintenanceDueDay,
         status: ContractStatus.ACTIVE,
       },
     });
@@ -346,7 +348,7 @@ export async function createContract(
             homeId,
             yearMonth,
             amount: monthlyRent,
-            dueDay: DEFAULT_RENT_DUE_DAY,
+            dueDay: input.rentDueDay,
             status: PaymentStatus.SCHEDULED,
           },
         });
@@ -391,6 +393,8 @@ export async function updateContract(
         deposit: input.deposit,
         monthlyRent,
         maintenanceFee: input.maintenanceFee,
+        rentDueDay: input.rentDueDay,
+        maintenanceDueDay: input.maintenanceDueDay,
       },
     });
 
@@ -402,9 +406,33 @@ export async function updateContract(
         },
         data: {
           amount: monthlyRent,
+          dueDay: input.rentDueDay,
         },
       });
+    } else {
+      await tx.rentPayment.updateMany({
+        where: {
+          homeId,
+          status: PaymentStatus.SCHEDULED,
+        },
+        data: {
+          dueDay: input.rentDueDay,
+        },
+      });
+    }
 
+    await tx.expensePayment.updateMany({
+      where: {
+        homeId,
+        status: PaymentStatus.SCHEDULED,
+        category: ExpenseCategory.MAINTENANCE,
+      },
+      data: {
+        dueDay: input.maintenanceDueDay,
+      },
+    });
+
+    if (canManageRent) {
       const yearMonth = getCurrentYearMonth();
       const existingRentPayment = await tx.rentPayment.findUnique({
         where: {
@@ -421,7 +449,7 @@ export async function updateContract(
             homeId,
             yearMonth,
             amount: monthlyRent,
-            dueDay: DEFAULT_RENT_DUE_DAY,
+            dueDay: input.rentDueDay,
             status: PaymentStatus.SCHEDULED,
           },
         });

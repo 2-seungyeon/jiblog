@@ -22,7 +22,7 @@ export default async function ContractNewPage({
       backHref={`/homes/${id}`}
       backLabel={`← ${home.nickname}`}
       title="계약 등록"
-      description="계약 정보를 등록하면 D-Day와 월세 일정을 관리할 수 있어요."
+      description="계약 정보와 월세·관리비 납부일을 등록하면 D-Day와 납부 일정을 관리할 수 있어요."
     >
       <ContractNewForm homeId={home.id} homeNickname={home.nickname} />
     </FormPageShell>

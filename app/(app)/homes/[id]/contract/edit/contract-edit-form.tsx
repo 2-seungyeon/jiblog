@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { DateInput } from "@/components/ui/date-input";
 import { FormActions } from "@/components/ui/form-actions";
 import { FormSection } from "@/components/ui/form-section";
+import { Input } from "@/components/ui/input";
 import { MoneyInput } from "@/components/ui/money-input";
 import { Select } from "@/components/ui/select";
 
@@ -33,6 +34,8 @@ type FormErrors = {
   deposit?: string;
   monthlyRent?: string;
   maintenanceFee?: string;
+  rentDueDay?: string;
+  maintenanceDueDay?: string;
 };
 
 export function ContractEditForm({
@@ -44,10 +47,12 @@ export function ContractEditForm({
   const router = useRouter();
   const toast = useToast();
   const [contractType, setContractType] = useState<ContractType>(contract.type);
+  const [maintenanceFee, setMaintenanceFee] = useState(contract.maintenanceFee);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
   const isJeonse = contractType === "전세";
+  const hasMaintenanceFee = maintenanceFee > 0;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -59,6 +64,11 @@ export function ContractEditForm({
 
     if (isJeonse) {
       formData.set("monthlyRent", "0");
+      formData.set("rentDueDay", String(contract.rentDueDay));
+    }
+
+    if (!hasMaintenanceFee) {
+      formData.set("maintenanceDueDay", String(contract.maintenanceDueDay));
     }
 
     const result = await updateContractAction(formData);
@@ -137,7 +147,36 @@ export function ContractEditForm({
           placeholder="0"
           defaultValue={contract.maintenanceFee}
           error={errors.maintenanceFee}
+          onRawValueChange={(value) => setMaintenanceFee(Number(value) || 0)}
         />
+        {!isJeonse ? (
+          <Input
+            name="rentDueDay"
+            label="월세 납부일"
+            type="number"
+            min={1}
+            max={31}
+            step={1}
+            defaultValue={contract.rentDueDay}
+            required
+            error={errors.rentDueDay}
+            helperText="매월 며칠에 내는지 입력해주세요. 예정 상태의 월세 납부일에 반영돼요."
+          />
+        ) : null}
+        {hasMaintenanceFee ? (
+          <Input
+            name="maintenanceDueDay"
+            label="관리비 납부일"
+            type="number"
+            min={1}
+            max={31}
+            step={1}
+            defaultValue={contract.maintenanceDueDay}
+            required
+            error={errors.maintenanceDueDay}
+            helperText="매월 며칠에 내는지 입력해주세요. 예정 상태의 관리비 납부일에 반영돼요."
+          />
+        ) : null}
       </FormSection>
 
       <FormActions>

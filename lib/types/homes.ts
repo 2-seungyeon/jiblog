@@ -41,6 +41,8 @@ export type HomeContractDetail = {
   deposit: number;
   monthlyRent: number;
   maintenanceFee: number;
+  rentDueDay: number;
+  maintenanceDueDay: number;
   status: string;
 };
 
@@ -104,6 +106,8 @@ export type CreateContractInput = {
   deposit: number;
   monthlyRent: number;
   maintenanceFee: number;
+  rentDueDay: number;
+  maintenanceDueDay: number;
 };
 
 export type CreateContractFieldErrors = {
@@ -113,6 +117,8 @@ export type CreateContractFieldErrors = {
   deposit?: string;
   monthlyRent?: string;
   maintenanceFee?: string;
+  rentDueDay?: string;
+  maintenanceDueDay?: string;
 };
 
 export type CreateContractResult =

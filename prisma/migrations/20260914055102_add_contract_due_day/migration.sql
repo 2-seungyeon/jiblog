@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Contract" ADD COLUMN     "dueDay" INTEGER NOT NULL DEFAULT 5;

@@ -161,6 +161,160 @@ export async function deleteHomeById(homeId: string): Promise<void> {
   await prisma.home.delete({ where: { id: homeId } });
 }
 
+type PreparedPaymentSnapshot = {
+  id: string;
+  created: boolean;
+  previousStatus: PaymentStatus;
+  previousDueDay: number;
+};
+
+export async function preparePendingRentPaymentForHome(
+  homeId: string,
+): Promise<PreparedPaymentSnapshot | null> {
+  const contract = await prisma.contract.findUnique({
+    where: { homeId },
+    select: { monthlyRent: true, rentDueDay: true },
+  });
+
+  if (!contract || contract.monthlyRent <= 0) {
+    return null;
+  }
+
+  const yearMonth = getCurrentYearMonth();
+  const existing = await prisma.rentPayment.findUnique({
+    where: {
+      homeId_yearMonth: { homeId, yearMonth },
+    },
+  });
+
+  if (!existing) {
+    const created = await prisma.rentPayment.create({
+      data: {
+        homeId,
+        yearMonth,
+        amount: contract.monthlyRent,
+        dueDay: contract.rentDueDay,
+        status: PaymentStatus.SCHEDULED,
+      },
+    });
+
+    return {
+      id: created.id,
+      created: true,
+      previousStatus: PaymentStatus.SCHEDULED,
+      previousDueDay: contract.rentDueDay,
+    };
+  }
+
+  await prisma.rentPayment.update({
+    where: { id: existing.id },
+    data: {
+      status: PaymentStatus.SCHEDULED,
+      dueDay: contract.rentDueDay,
+    },
+  });
+
+  return {
+    id: existing.id,
+    created: false,
+    previousStatus: existing.status,
+    previousDueDay: existing.dueDay,
+  };
+}
+
+export async function restoreRentPaymentSnapshot(
+  snapshot: PreparedPaymentSnapshot,
+): Promise<void> {
+  if (snapshot.created) {
+    await prisma.rentPayment.delete({ where: { id: snapshot.id } });
+    return;
+  }
+
+  await prisma.rentPayment.update({
+    where: { id: snapshot.id },
+    data: {
+      status: snapshot.previousStatus,
+      dueDay: snapshot.previousDueDay,
+    },
+  });
+}
+
+export async function preparePendingMaintenancePaymentForHome(
+  homeId: string,
+): Promise<PreparedPaymentSnapshot | null> {
+  const contract = await prisma.contract.findUnique({
+    where: { homeId },
+    select: { maintenanceFee: true, maintenanceDueDay: true },
+  });
+
+  if (!contract || contract.maintenanceFee <= 0) {
+    return null;
+  }
+
+  const yearMonth = getCurrentYearMonth();
+  const existing = await prisma.expensePayment.findUnique({
+    where: {
+      homeId_yearMonth_category: {
+        homeId,
+        yearMonth,
+        category: ExpenseCategory.MAINTENANCE,
+      },
+    },
+  });
+
+  if (!existing) {
+    const created = await prisma.expensePayment.create({
+      data: {
+        homeId,
+        yearMonth,
+        category: ExpenseCategory.MAINTENANCE,
+        amount: contract.maintenanceFee,
+        dueDay: contract.maintenanceDueDay,
+        status: PaymentStatus.SCHEDULED,
+      },
+    });
+
+    return {
+      id: created.id,
+      created: true,
+      previousStatus: PaymentStatus.SCHEDULED,
+      previousDueDay: contract.maintenanceDueDay,
+    };
+  }
+
+  await prisma.expensePayment.update({
+    where: { id: existing.id },
+    data: {
+      status: PaymentStatus.SCHEDULED,
+      dueDay: contract.maintenanceDueDay,
+    },
+  });
+
+  return {
+    id: existing.id,
+    created: false,
+    previousStatus: existing.status,
+    previousDueDay: existing.dueDay,
+  };
+}
+
+export async function restoreMaintenancePaymentSnapshot(
+  snapshot: PreparedPaymentSnapshot,
+): Promise<void> {
+  if (snapshot.created) {
+    await prisma.expensePayment.delete({ where: { id: snapshot.id } });
+    return;
+  }
+
+  await prisma.expensePayment.update({
+    where: { id: snapshot.id },
+    data: {
+      status: snapshot.previousStatus,
+      dueDay: snapshot.previousDueDay,
+    },
+  });
+}
+
 export async function preparePendingRentPaymentForTestUser(): Promise<string | null> {
   const userId = await getTestUserId();
 

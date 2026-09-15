@@ -6,7 +6,6 @@ import {
   PaymentStatus,
 } from "@prisma/client";
 
-import { DEFAULT_RENT_DUE_DAY } from "@/lib/constants/app";
 import { prisma } from "@/lib/prisma";
 import { isContractEligibleForRent } from "@/lib/utils/contract-status";
 import { formatDateFromDb, getCurrentYearMonth } from "@/lib/utils/date";
@@ -33,6 +32,7 @@ export async function ensureCurrentMonthRentPayments(
           type: true,
           monthlyRent: true,
           endDate: true,
+          rentDueDay: true,
         },
       },
     },
@@ -60,7 +60,7 @@ export async function ensureCurrentMonthRentPayments(
         homeId: home.id,
         yearMonth,
         amount: home.contract.monthlyRent,
-        dueDay: DEFAULT_RENT_DUE_DAY,
+        dueDay: home.contract.rentDueDay,
         status: PaymentStatus.SCHEDULED,
       },
     ];

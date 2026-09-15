@@ -28,6 +28,7 @@ import type {
   UpdateHomeFieldErrors,
   UpdateHomeResult,
 } from "@/lib/types/homes";
+import { resolveContractDueDays } from "@/lib/utils/contract-due-day";
 import { isContractType, isExpenseCategory, isResidenceStatus } from "@/lib/utils/homes";
 
 const AUTH_REQUIRED_MESSAGE = "로그인이 필요해요";
@@ -74,6 +75,8 @@ function validateContractForm(formData: FormData): {
   deposit: number | null;
   monthlyRent: number;
   maintenanceFee: number | null;
+  rentDueDay: number;
+  maintenanceDueDay: number;
   startDate: string;
   endDate: string;
 } {
@@ -84,6 +87,8 @@ function validateContractForm(formData: FormData): {
   const depositValue = String(formData.get("deposit") ?? "").trim();
   const monthlyRentValue = String(formData.get("monthlyRent") ?? "").trim();
   const maintenanceFeeValue = String(formData.get("maintenanceFee") ?? "").trim();
+  const rentDueDayValue = String(formData.get("rentDueDay") ?? "").trim();
+  const maintenanceDueDayValue = String(formData.get("maintenanceDueDay") ?? "").trim();
 
   const errors: CreateContractFieldErrors = {};
 
@@ -145,6 +150,17 @@ function validateContractForm(formData: FormData): {
     errors.maintenanceFee = "관리비는 0원 이상이어야 해요";
   }
 
+  const resolvedMaintenanceFee = maintenanceFee ?? 0;
+  const dueDays = resolveContractDueDays({
+    contractType,
+    monthlyRent,
+    maintenanceFee: resolvedMaintenanceFee,
+    rentDueDayValue,
+    maintenanceDueDayValue,
+  });
+
+  Object.assign(errors, dueDays.errors);
+
   return {
     homeId,
     errors,
@@ -152,6 +168,8 @@ function validateContractForm(formData: FormData): {
     deposit,
     monthlyRent,
     maintenanceFee,
+    rentDueDay: dueDays.rentDueDay,
+    maintenanceDueDay: dueDays.maintenanceDueDay,
     startDate,
     endDate,
   };
@@ -299,6 +317,8 @@ export async function createContractAction(
     deposit,
     monthlyRent,
     maintenanceFee,
+    rentDueDay,
+    maintenanceDueDay,
     startDate,
     endDate,
   } = validated;
@@ -315,6 +335,8 @@ export async function createContractAction(
       deposit,
       monthlyRent,
       maintenanceFee,
+      rentDueDay,
+      maintenanceDueDay,
     });
 
     if (!created) {
@@ -348,6 +370,8 @@ export async function updateContractAction(
     deposit,
     monthlyRent,
     maintenanceFee,
+    rentDueDay,
+    maintenanceDueDay,
     startDate,
     endDate,
   } = validated;
@@ -364,6 +388,8 @@ export async function updateContractAction(
       deposit,
       monthlyRent,
       maintenanceFee,
+      rentDueDay,
+      maintenanceDueDay,
     });
 
     if (!updated) {

@@ -90,8 +90,10 @@ model Contract {
   endDate        DateTime       @db.Date
   deposit        Int
   monthlyRent    Int            @default(0)
-  maintenanceFee Int            @default(0)
-  status         ContractStatus @default(ACTIVE)
+  maintenanceFee    Int            @default(0)
+  rentDueDay        Int            @default(5)
+  maintenanceDueDay Int            @default(5)
+  status            ContractStatus @default(ACTIVE)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 

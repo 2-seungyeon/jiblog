@@ -6,7 +6,6 @@ import { Panel } from "@/components/ui/panel";
 import { Tag } from "@/components/ui/tag";
 import { ContractStatusBadgeFromEndDate } from "@/components/ui/contract-status-badge";
 import { ContractHomeDetailGuidance } from "@/components/contract/contract-guidance-panel";
-import { DEFAULT_RENT_DUE_DAY } from "@/lib/constants/app";
 import { formatWon } from "@/lib/utils/format";
 import {
   formatContractAmounts,
@@ -79,7 +78,8 @@ function ContractSection({
   const amounts = formatContractAmounts(contract);
   const expiryStatus = getContractExpiryStatus(contract.endDate);
   const dDayLabel = formatDDay(contract.endDate);
-  const showDueDay = contract.type !== "전세";
+  const showRentDueDay = contract.type !== "전세" && contract.monthlyRent > 0;
+  const showMaintenanceDueDay = contract.maintenanceFee > 0;
   const needsBanner =
     expiryStatus === "notice" ||
     expiryStatus === "warning" ||
@@ -128,10 +128,16 @@ function ContractSection({
         <DetailRow label="보증금" value={amounts.deposit} />
         <DetailRow label="월세" value={amounts.monthlyRent} />
         <DetailRow label="관리비" value={amounts.maintenanceFee} />
-        {showDueDay ? (
+        {showRentDueDay ? (
           <DetailRow
             label="월세 납부 예정일"
-            value={formatMonthlyRentDueDayLabel(DEFAULT_RENT_DUE_DAY)}
+            value={formatMonthlyRentDueDayLabel(contract.rentDueDay)}
+          />
+        ) : null}
+        {showMaintenanceDueDay ? (
+          <DetailRow
+            label="관리비 납부 예정일"
+            value={formatMonthlyRentDueDayLabel(contract.maintenanceDueDay)}
           />
         ) : null}
       </div>

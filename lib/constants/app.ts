@@ -1,1 +1,2 @@
 export const DEFAULT_RENT_DUE_DAY = 5;
+export const DEFAULT_MAINTENANCE_DUE_DAY = 5;
