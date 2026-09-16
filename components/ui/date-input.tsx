@@ -6,12 +6,26 @@ import { ko } from "date-fns/locale";
 
 import { FormField, getFormFieldDescribedById } from "@/components/ui/form-field";
 import { fieldClassName, fieldErrorClassName } from "@/components/ui/field-styles";
-import { getKSTToday } from "@/lib/utils/date";
+import { getKSTDateParts, getKSTToday } from "@/lib/utils/date";
 import {
   formatDateDisplay,
   isoDateToLocalDate,
   localDateToIsoDate,
 } from "@/lib/utils/date-input";
+
+const CALENDAR_YEAR_SPAN = 50;
+
+function getCalendarMonthBounds(reference: Date = getKSTToday()): {
+  startMonth: Date;
+  endMonth: Date;
+} {
+  const { year } = getKSTDateParts(reference);
+
+  return {
+    startMonth: new Date(year - CALENDAR_YEAR_SPAN, 0, 1),
+    endMonth: new Date(year + 10, 11, 1),
+  };
+}
 
 export type DateInputProps = {
   name: string;
@@ -83,6 +97,7 @@ export function DateInput({
 
   const selected = isoDateToLocalDate(isoValue);
   const displayValue = isoValue ? formatDateDisplay(isoValue) : "";
+  const { startMonth, endMonth } = getCalendarMonthBounds();
 
   function handleSelect(date: Date | undefined) {
     if (!date) {
@@ -130,7 +145,7 @@ export function DateInput({
           <span className="flex-1">{displayValue || placeholder}</span>
         </button>
         {open ? (
-          <div className="absolute top-[calc(100%+4px)] left-0 z-30 w-[min(100%,320px)] rounded-lg border border-border-default bg-surface p-3 shadow-md">
+          <div className="absolute top-[calc(100%+4px)] left-0 z-30 w-full max-w-[360px] rounded-lg border border-border-default bg-surface p-2 shadow-md sm:p-3">
             <DayPicker
               mode="single"
               className="jiblog-day-picker"
@@ -140,6 +155,10 @@ export function DateInput({
               selected={selected}
               onSelect={handleSelect}
               today={getKSTToday()}
+              startMonth={startMonth}
+              endMonth={endMonth}
+              captionLayout="dropdown"
+              reverseYears
               showOutsideDays
               navLayout="around"
               fixedWeeks
