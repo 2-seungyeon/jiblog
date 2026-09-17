@@ -10,11 +10,13 @@ import {
 import {
   completeExpensePayment as completeExpensePaymentInDb,
   createExpensePayment as createExpensePaymentInDb,
+  uncompleteExpensePayment as uncompleteExpensePaymentInDb,
 } from "@/lib/repositories/expenses";
 import { createMaintenancePaymentForMonth as createMaintenancePaymentForMonthInDb } from "@/lib/repositories/maintenance";
 import {
   completeRentPayment as completeRentPaymentInDb,
   createRentPaymentForMonth as createRentPaymentForMonthInDb,
+  uncompleteRentPayment as uncompleteRentPaymentInDb,
 } from "@/lib/repositories/rent";
 import { AuthError } from "@/lib/auth/user";
 import type {
@@ -439,6 +441,31 @@ export async function completeRentPaymentAction(
   }
 }
 
+export async function uncompleteRentPaymentAction(
+  paymentId: string,
+): Promise<CompleteRentPaymentResult> {
+  const id = paymentId.trim();
+
+  if (!id) {
+    return { success: false, message: "납부 정보를 찾을 수 없어요" };
+  }
+
+  try {
+    const uncompleted = await uncompleteRentPaymentInDb(id);
+
+    if (!uncompleted) {
+      return { success: false, message: "납부 취소할 수 없어요" };
+    }
+
+    return { success: true };
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return { success: false, message: AUTH_REQUIRED_MESSAGE };
+    }
+    throw error;
+  }
+}
+
 function mapCreatePaymentRecordError(
   code:
     | "home_not_found"
@@ -628,6 +655,31 @@ export async function completeExpensePaymentAction(
 
     if (!completed) {
       return { success: false, message: "납부 완료 처리할 수 없어요" };
+    }
+
+    return { success: true };
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return { success: false, message: AUTH_REQUIRED_MESSAGE };
+    }
+    throw error;
+  }
+}
+
+export async function uncompleteExpensePaymentAction(
+  paymentId: string,
+): Promise<CompleteExpensePaymentResult> {
+  const id = paymentId.trim();
+
+  if (!id) {
+    return { success: false, message: "납부 정보를 찾을 수 없어요" };
+  }
+
+  try {
+    const uncompleted = await uncompleteExpensePaymentInDb(id);
+
+    if (!uncompleted) {
+      return { success: false, message: "납부 취소할 수 없어요" };
     }
 
     return { success: true };

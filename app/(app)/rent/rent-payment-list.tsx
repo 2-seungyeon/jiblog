@@ -3,11 +3,13 @@
 import {
   completeRentPaymentAction,
   createRentPaymentAction,
+  uncompleteRentPaymentAction,
 } from "@/lib/actions/homes";
 import { PaymentCategoryListPanel } from "@/components/payment/payment-category-list-panel";
+import { PaymentCancelButton } from "@/components/payment/payment-cancel-button";
 import { PaymentCompleteButton } from "@/components/payment/payment-complete-button";
 import { PaymentRecordAddButton } from "@/components/payment/payment-record-add-button";
-import { usePaymentComplete } from "@/hooks/use-payment-complete";
+import { usePaymentStatus } from "@/hooks/use-payment-status";
 import type { MissingRentHome, RentPaymentListItem } from "@/lib/types/homes";
 import { formatWon } from "@/lib/utils/format";
 import {
@@ -31,9 +33,8 @@ export function RentPaymentList({
   isCurrentMonth,
   missingRentHomes,
 }: RentPaymentListProps) {
-  const { handleComplete, loadingId, getDisplayStatus } = usePaymentComplete(
-    completeRentPaymentAction,
-  );
+  const { handleComplete, handleUncomplete, loadingId, loadingKind, getDisplayStatus } =
+    usePaymentStatus(completeRentPaymentAction, uncompleteRentPaymentAction);
   const sortedPayments = sortRentPayments(payments);
   const pendingCount = payments.filter((payment) => payment.status === "예정").length;
   const completedCount = payments.filter((payment) => payment.status === "완료").length;
@@ -97,12 +98,21 @@ export function RentPaymentList({
                 status={displayStatus}
                 overdue={overdue}
                 action={
-                  !isCompleted ? (
+                  isCompleted ? (
+                    <PaymentCancelButton
+                      loading={
+                        loadingId === payment.id && loadingKind === "uncomplete"
+                      }
+                      onClick={() => handleUncomplete(payment.id)}
+                    />
+                  ) : (
                     <PaymentCompleteButton
-                      loading={loadingId === payment.id}
+                      loading={
+                        loadingId === payment.id && loadingKind === "complete"
+                      }
                       onClick={() => handleComplete(payment.id)}
                     />
-                  ) : null
+                  )
                 }
               />
             </div>

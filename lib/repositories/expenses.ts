@@ -223,3 +223,27 @@ export async function completeExpensePayment(
 
   return true;
 }
+
+export async function uncompleteExpensePayment(
+  paymentId: string,
+): Promise<boolean> {
+  const user = await requireUser();
+
+  const payment = await prisma.expensePayment.findFirst({
+    where: {
+      id: paymentId,
+      home: { userId: user.id },
+    },
+  });
+
+  if (!payment || payment.status === PaymentStatus.SCHEDULED) {
+    return false;
+  }
+
+  await prisma.expensePayment.update({
+    where: { id: paymentId },
+    data: { status: PaymentStatus.SCHEDULED },
+  });
+
+  return true;
+}

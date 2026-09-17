@@ -268,3 +268,25 @@ export async function completeRentPayment(paymentId: string): Promise<boolean> {
 
   return true;
 }
+
+export async function uncompleteRentPayment(paymentId: string): Promise<boolean> {
+  const user = await requireUser();
+
+  const payment = await prisma.rentPayment.findFirst({
+    where: {
+      id: paymentId,
+      home: { userId: user.id },
+    },
+  });
+
+  if (!payment || payment.status === PaymentStatus.SCHEDULED) {
+    return false;
+  }
+
+  await prisma.rentPayment.update({
+    where: { id: paymentId },
+    data: { status: PaymentStatus.SCHEDULED },
+  });
+
+  return true;
+}

@@ -3,6 +3,7 @@ export const TOAST_MESSAGES = {
   updated: "수정했어요.",
   deleted: "삭제했어요.",
   paymentComplete: "납부 완료했어요.",
+  paymentCancel: "납부 취소했어요.",
 } as const;
 
 export function getActionErrorMessage(message?: string): string {
