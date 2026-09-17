@@ -133,6 +133,11 @@ export type UpdateContractResult = CreateContractResult;
 
 export type RentPaymentStatus = "예정" | "완료";
 
+export type CompletePaymentDetails = {
+  paidAt?: string;
+  memo?: string;
+};
+
 export type RentPayment = {
   id: string;
   homeId: string;
@@ -141,6 +146,7 @@ export type RentPayment = {
   dueDay: number;
   status: RentPaymentStatus;
   completedAt: string | null;
+  memo: string | null;
 };
 
 export type RentPaymentListItem = RentPayment & {
@@ -194,6 +200,7 @@ export type ExpensePayment = {
   dueDay: number;
   status: ExpensePaymentStatus;
   completedAt: string | null;
+  memo: string | null;
 };
 
 export type ExpensePaymentListItem = ExpensePayment & {

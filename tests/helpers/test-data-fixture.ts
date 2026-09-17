@@ -213,6 +213,8 @@ export async function preparePendingRentPaymentForHome(
     data: {
       status: PaymentStatus.SCHEDULED,
       dueDay: contract.rentDueDay,
+      paidAt: null,
+      memo: null,
     },
   });
 
@@ -237,6 +239,8 @@ export async function restoreRentPaymentSnapshot(
     data: {
       status: snapshot.previousStatus,
       dueDay: snapshot.previousDueDay,
+      paidAt: null,
+      memo: null,
     },
   });
 }
@@ -289,6 +293,8 @@ export async function preparePendingMaintenancePaymentForHome(
     data: {
       status: PaymentStatus.SCHEDULED,
       dueDay: contract.maintenanceDueDay,
+      paidAt: null,
+      memo: null,
     },
   });
 
@@ -313,6 +319,8 @@ export async function restoreMaintenancePaymentSnapshot(
     data: {
       status: snapshot.previousStatus,
       dueDay: snapshot.previousDueDay,
+      paidAt: null,
+      memo: null,
     },
   });
 }

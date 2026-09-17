@@ -61,6 +61,16 @@ export function formatCompletionDateLabel(date: Date | string): string {
   return `${month}월 ${day}일 완료`;
 }
 
+export function getCurrentIsoDate(date: Date = new Date()): string {
+  const { year, month, day } = getKSTDateParts(date);
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+export function parseIsoDateToDb(isoDate: string): Date {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day));
+}
+
 export function formatDateFromDb(date: Date): string {
   const year = date.getUTCFullYear();
   const month = String(date.getUTCMonth() + 1).padStart(2, "0");

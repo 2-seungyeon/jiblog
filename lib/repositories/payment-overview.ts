@@ -1,11 +1,15 @@
 import "server-only";
 
-import { ExpenseCategory as PrismaExpenseCategory } from "@prisma/client";
+import {
+  ExpenseCategory as PrismaExpenseCategory,
+  PaymentStatus,
+} from "@prisma/client";
 
 import { requireUser } from "@/lib/auth/user";
 import { prisma } from "@/lib/prisma";
 import { resolveViewYearMonth } from "@/lib/repositories/view-year-month";
 import { formatDateFromDb } from "@/lib/utils/date";
+import { getPaymentCompletedAtIso } from "@/lib/utils/payment-record";
 import { isRentPaymentBillable } from "@/lib/utils/contract-status";
 import {
   CONTRACT_TYPE_LABEL,
@@ -37,6 +41,8 @@ function toExpenseListItem(
     amount: number;
     dueDay: number;
     status: string;
+    paidAt: Date | null;
+    memo: string | null;
     updatedAt: Date;
     home: {
       nickname: string;
@@ -58,8 +64,12 @@ function toExpenseListItem(
     amount: payment.amount,
     dueDay: payment.dueDay,
     status,
-    completedAt:
-      status === "완료" ? payment.updatedAt.toISOString() : null,
+    completedAt: getPaymentCompletedAtIso(
+      payment.status as PaymentStatus,
+      payment.paidAt,
+      payment.updatedAt,
+    ),
+    memo: payment.memo,
     homeNickname: payment.home.nickname,
   };
 }

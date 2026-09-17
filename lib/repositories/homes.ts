@@ -181,6 +181,29 @@ export async function getDefaultIsPrimary(): Promise<boolean> {
   return primaryCount === 0;
 }
 
+export async function isHomeNicknameTaken(
+  userId: string,
+  nickname: string,
+  excludeHomeId?: string,
+): Promise<boolean> {
+  const normalized = nickname.trim();
+
+  if (!normalized) {
+    return false;
+  }
+
+  const existing = await prisma.home.findFirst({
+    where: {
+      userId,
+      nickname: normalized,
+      ...(excludeHomeId ? { NOT: { id: excludeHomeId } } : {}),
+    },
+    select: { id: true },
+  });
+
+  return existing !== null;
+}
+
 export async function createHome(input: CreateHomeInput): Promise<string> {
   const user = await requireUser();
   const residenceStatus = RESIDENCE_STATUS_PRISMA[input.residenceStatus];

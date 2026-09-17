@@ -5,7 +5,16 @@ import { ContractType, PaymentStatus, type RentPayment } from "@prisma/client";
 import { requireUser } from "@/lib/auth/user";
 import { prisma } from "@/lib/prisma";
 import { resolveViewYearMonth } from "@/lib/repositories/view-year-month";
-import { formatDateFromDb } from "@/lib/utils/date";
+import {
+  formatDateFromDb,
+  getCurrentIsoDate,
+  parseIsoDateToDb,
+} from "@/lib/utils/date";
+import {
+  getPaymentCompletedAtIso,
+  normalizePaymentMemo,
+} from "@/lib/utils/payment-record";
+import type { CompletePaymentDetails } from "@/lib/types/homes";
 import {
   isContractEligibleForRentInMonth,
   isRentPaymentBillable,
@@ -57,10 +66,12 @@ function toRentPaymentListItem(
     amount: payment.amount,
     dueDay: payment.dueDay,
     status: paymentStatus,
-    completedAt:
-      payment.status === PaymentStatus.COMPLETED
-        ? payment.updatedAt.toISOString()
-        : null,
+    completedAt: getPaymentCompletedAtIso(
+      payment.status,
+      payment.paidAt,
+      payment.updatedAt,
+    ),
+    memo: payment.memo,
     homeNickname: payment.home.nickname,
     contractType,
   };
@@ -247,7 +258,10 @@ export async function createRentPaymentForMonth(
   return { success: true, id: payment.id };
 }
 
-export async function completeRentPayment(paymentId: string): Promise<boolean> {
+export async function completeRentPayment(
+  paymentId: string,
+  details?: CompletePaymentDetails,
+): Promise<boolean> {
   const user = await requireUser();
 
   const payment = await prisma.rentPayment.findFirst({
@@ -261,9 +275,15 @@ export async function completeRentPayment(paymentId: string): Promise<boolean> {
     return false;
   }
 
+  const paidAt = parseIsoDateToDb(details?.paidAt ?? getCurrentIsoDate());
+
   await prisma.rentPayment.update({
     where: { id: paymentId },
-    data: { status: PaymentStatus.COMPLETED },
+    data: {
+      status: PaymentStatus.COMPLETED,
+      paidAt,
+      memo: normalizePaymentMemo(details?.memo),
+    },
   });
 
   return true;
@@ -285,7 +305,11 @@ export async function uncompleteRentPayment(paymentId: string): Promise<boolean>
 
   await prisma.rentPayment.update({
     where: { id: paymentId },
-    data: { status: PaymentStatus.SCHEDULED },
+    data: {
+      status: PaymentStatus.SCHEDULED,
+      paidAt: null,
+      memo: null,
+    },
   });
 
   return true;

@@ -107,6 +107,8 @@ model RentPayment {
   amount    Int
   dueDay    Int
   status    PaymentStatus @default(SCHEDULED)
+  paidAt    DateTime?     @db.Date
+  memo      String?
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
@@ -126,6 +128,8 @@ model ExpensePayment {
   amount    Int
   dueDay    Int
   status    PaymentStatus   @default(SCHEDULED)
+  paidAt    DateTime?       @db.Date
+  memo      String?
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 

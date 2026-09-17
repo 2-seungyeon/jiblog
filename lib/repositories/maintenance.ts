@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { resolveViewYearMonth } from "@/lib/repositories/view-year-month";
 import type { CreateExpensePaymentResult } from "@/lib/repositories/expenses";
 import { formatDateFromDb } from "@/lib/utils/date";
+import { getPaymentCompletedAtIso } from "@/lib/utils/payment-record";
 import { isContractEligibleForMaintenanceInMonth } from "@/lib/utils/contract-status";
 import { isFutureYearMonth } from "@/lib/utils/year-month";
 import {
@@ -80,10 +81,12 @@ export async function getMaintenancePageData(
       amount: payment.amount,
       dueDay: payment.dueDay,
       status: PAYMENT_STATUS_LABEL[payment.status],
-      completedAt:
-        payment.status === PaymentStatus.COMPLETED
-          ? payment.updatedAt.toISOString()
-          : null,
+      completedAt: getPaymentCompletedAtIso(
+        payment.status,
+        payment.paidAt,
+        payment.updatedAt,
+      ),
+      memo: payment.memo,
       homeNickname: payment.home.nickname,
     })) as ExpensePaymentListItem[];
 

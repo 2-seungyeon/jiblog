@@ -7,7 +7,8 @@ import {
 } from "@/lib/actions/homes";
 import { PaymentCategoryListPanel } from "@/components/payment/payment-category-list-panel";
 import { PaymentCancelButton } from "@/components/payment/payment-cancel-button";
-import { PaymentCompleteButton } from "@/components/payment/payment-complete-button";
+import { PaymentCompleteTrigger } from "@/components/payment/payment-complete-trigger";
+import { formatPaymentPeriodLabel } from "@/lib/utils/payment-display";
 import { PaymentRecordAddButton } from "@/components/payment/payment-record-add-button";
 import { usePaymentStatus } from "@/hooks/use-payment-status";
 import type { MissingRentHome, RentPaymentListItem } from "@/lib/types/homes";
@@ -95,6 +96,7 @@ export function RentPaymentList({
                 contextLine={payment.contractType}
                 amount={payment.amount}
                 metaLine={formatRentDueDateMeta(payment)}
+                metaExtra={payment.memo ?? undefined}
                 status={displayStatus}
                 overdue={overdue}
                 action={
@@ -106,11 +108,14 @@ export function RentPaymentList({
                       onClick={() => handleUncomplete(payment.id)}
                     />
                   ) : (
-                    <PaymentCompleteButton
+                    <PaymentCompleteTrigger
+                      title={payment.homeNickname}
+                      subtitle={formatPaymentPeriodLabel(payment.yearMonth)}
+                      amount={payment.amount}
                       loading={
                         loadingId === payment.id && loadingKind === "complete"
                       }
-                      onClick={() => handleComplete(payment.id)}
+                      onConfirm={(details) => handleComplete(payment.id, details)}
                     />
                   )
                 }

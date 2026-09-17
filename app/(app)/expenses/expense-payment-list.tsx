@@ -6,7 +6,8 @@ import {
 } from "@/lib/actions/homes";
 import { PaymentCategoryListPanel } from "@/components/payment/payment-category-list-panel";
 import { PaymentCancelButton } from "@/components/payment/payment-cancel-button";
-import { PaymentCompleteButton } from "@/components/payment/payment-complete-button";
+import { PaymentCompleteTrigger } from "@/components/payment/payment-complete-trigger";
+import { formatPaymentPeriodLabel } from "@/lib/utils/payment-display";
 import { usePaymentStatus } from "@/hooks/use-payment-status";
 import type { ExpensePaymentListItem } from "@/lib/types/homes";
 import {
@@ -50,6 +51,7 @@ export function ExpensePaymentList({ payments }: ExpensePaymentListProps) {
                 contextLine={payment.category}
                 amount={payment.amount}
                 metaLine={formatExpenseDueDateMeta(payment)}
+                metaExtra={payment.memo ?? undefined}
                 status={displayStatus}
                 statusKind="expense"
                 overdue={overdue}
@@ -62,11 +64,14 @@ export function ExpensePaymentList({ payments }: ExpensePaymentListProps) {
                       onClick={() => handleUncomplete(payment.id)}
                     />
                   ) : (
-                    <PaymentCompleteButton
+                    <PaymentCompleteTrigger
+                      title={payment.homeNickname}
+                      subtitle={`${formatPaymentPeriodLabel(payment.yearMonth)} · ${payment.category}`}
+                      amount={payment.amount}
                       loading={
                         loadingId === payment.id && loadingKind === "complete"
                       }
-                      onClick={() => handleComplete(payment.id)}
+                      onConfirm={(details) => handleComplete(payment.id, details)}
                     />
                   )
                 }

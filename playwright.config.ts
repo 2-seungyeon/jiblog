@@ -55,7 +55,7 @@ export default defineConfig({
           {
             name: "authenticated",
             testMatch:
-              /step3[89](?:\.[567])?-authenticated-qa\.spec\.ts|step40-authenticated-qa\.spec\.ts|step42-authenticated-qa\.spec\.ts|step43-authenticated-qa\.spec\.ts|step45-authenticated-qa\.spec\.ts|step46-authenticated-qa\.spec\.ts|step47-authenticated-qa\.spec\.ts|step39z-logout\.spec\.ts/,
+              /step3[89](?:\.[567])?-authenticated-qa\.spec\.ts|step40-authenticated-qa\.spec\.ts|step42-authenticated-qa\.spec\.ts|step43-authenticated-qa\.spec\.ts|step45-authenticated-qa\.spec\.ts|step46-authenticated-qa\.spec\.ts|step47-authenticated-qa\.spec\.ts|step48-authenticated-qa\.spec\.ts|step49-authenticated-qa\.spec\.ts|step39z-logout\.spec\.ts/,
             dependencies: ["setup"],
             fullyParallel: false,
             use: {

@@ -18,7 +18,11 @@ import {
   preparePendingUtilityPaymentForTestUser,
   restoreContractMaintenanceFee,
 } from "./helpers/test-data-fixture";
-import { expectSubmitWithFeedback, gotoAppPage } from "./helpers/ui";
+import {
+  completePaymentViaDialog,
+  expectSubmitWithFeedback,
+  gotoAppPage,
+} from "./helpers/ui";
 
 let amountAudit: AmountAuditResult | null = null;
 
@@ -262,7 +266,7 @@ test.describe("STEP 38.5 utility payment complete", () => {
     }
 
     const pendingBefore = await page.getByRole("button", { name: "납부하기" }).count();
-    await expectSubmitWithFeedback(page, completeButton, "납부 완료했어요");
+    await completePaymentViaDialog(page, completeButton);
 
     await gotoAppPage(page, "/expenses");
     await expect(page.getByRole("button", { name: "납부하기" })).toHaveCount(

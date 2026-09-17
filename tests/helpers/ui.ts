@@ -35,6 +35,20 @@ export async function expectSubmitWithFeedback(
   await expect(successToast).toBeVisible({ timeout: 15_000 });
 }
 
+export async function completePaymentViaDialog(
+  page: Page,
+  openButton: Locator,
+  successText = "납부 완료했어요",
+): Promise<void> {
+  await openButton.click();
+  await expect(page.getByRole("heading", { name: "납부 완료 처리" })).toBeVisible();
+  await expectSubmitWithFeedback(
+    page,
+    page.getByRole("button", { name: "납부 완료" }),
+    successText,
+  );
+}
+
 export async function selectComboboxOption(
   page: Page,
   label: string,

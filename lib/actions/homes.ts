@@ -4,9 +4,11 @@ import {
   createContract as createContractInDb,
   createHome as createHomeInDb,
   deleteHome as deleteHomeInDb,
+  isHomeNicknameTaken,
   updateContract as updateContractInDb,
   updateHome as updateHomeInDb,
 } from "@/lib/repositories/homes";
+import { requireUser } from "@/lib/auth/user";
 import {
   completeExpensePayment as completeExpensePaymentInDb,
   createExpensePayment as createExpensePaymentInDb,
@@ -37,7 +39,9 @@ import type {
 } from "@/lib/types/homes";
 import { resolveContractDueDays } from "@/lib/utils/contract-due-day";
 import { isContractType, isExpenseCategory, isResidenceStatus } from "@/lib/utils/homes";
+import { parseCompletePaymentDetails } from "@/lib/utils/complete-payment";
 import { formatYearMonthLabel, parseYearMonthParam } from "@/lib/utils/year-month";
+import type { CompletePaymentDetails } from "@/lib/types/homes";
 
 const AUTH_REQUIRED_MESSAGE = "로그인이 필요해요";
 
@@ -213,6 +217,15 @@ export async function createHomeAction(
     : "거주 중";
 
   try {
+    const user = await requireUser();
+
+    if (await isHomeNicknameTaken(user.id, nickname)) {
+      return {
+        success: false,
+        errors: { nickname: "이미 같은 별칭의 집이 있어요" },
+      };
+    }
+
     const id = await createHomeInDb({
       nickname,
       address,
@@ -267,6 +280,15 @@ export async function updateHomeAction(
     : "거주 중";
 
   try {
+    const user = await requireUser();
+
+    if (await isHomeNicknameTaken(user.id, nickname, homeId)) {
+      return {
+        success: false,
+        errors: { nickname: "이미 같은 별칭의 집이 있어요" },
+      };
+    }
+
     const updated = await updateHomeInDb(homeId, {
       nickname,
       address,
@@ -418,6 +440,7 @@ export async function updateContractAction(
 
 export async function completeRentPaymentAction(
   paymentId: string,
+  details?: CompletePaymentDetails,
 ): Promise<CompleteRentPaymentResult> {
   const id = paymentId.trim();
 
@@ -425,8 +448,14 @@ export async function completeRentPaymentAction(
     return { success: false, message: "납부 정보를 찾을 수 없어요" };
   }
 
+  const parsed = parseCompletePaymentDetails(details);
+
+  if (!parsed.success) {
+    return { success: false, message: parsed.message };
+  }
+
   try {
-    const completed = await completeRentPaymentInDb(id);
+    const completed = await completeRentPaymentInDb(id, parsed.data);
 
     if (!completed) {
       return { success: false, message: "납부 완료 처리할 수 없어요" };
@@ -643,6 +672,7 @@ export async function createExpenseAction(
 
 export async function completeExpensePaymentAction(
   paymentId: string,
+  details?: CompletePaymentDetails,
 ): Promise<CompleteExpensePaymentResult> {
   const id = paymentId.trim();
 
@@ -650,8 +680,14 @@ export async function completeExpensePaymentAction(
     return { success: false, message: "납부 정보를 찾을 수 없어요" };
   }
 
+  const parsed = parseCompletePaymentDetails(details);
+
+  if (!parsed.success) {
+    return { success: false, message: parsed.message };
+  }
+
   try {
-    const completed = await completeExpensePaymentInDb(id);
+    const completed = await completeExpensePaymentInDb(id, parsed.data);
 
     if (!completed) {
       return { success: false, message: "납부 완료 처리할 수 없어요" };

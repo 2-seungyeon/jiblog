@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { useToast } from "@/components/providers/toast-provider";
+import type { CompletePaymentDetails } from "@/lib/types/homes";
 import {
   TOAST_MESSAGES,
   getActionErrorMessage,
@@ -15,7 +16,10 @@ type PaymentActionResult =
 type PaymentStatus = "예정" | "완료";
 
 export function usePaymentStatus(
-  completeAction: (paymentId: string) => Promise<PaymentActionResult>,
+  completeAction: (
+    paymentId: string,
+    details?: CompletePaymentDetails,
+  ) => Promise<PaymentActionResult>,
   uncompleteAction: (paymentId: string) => Promise<PaymentActionResult>,
 ) {
   const router = useRouter();
@@ -36,14 +40,17 @@ export function usePaymentStatus(
   );
 
   const handleComplete = useCallback(
-    async (paymentId: string) => {
+    async (
+      paymentId: string,
+      details?: CompletePaymentDetails,
+    ): Promise<boolean> => {
       if (loadingId === paymentId) {
-        return;
+        return false;
       }
 
       const currentStatus = statusOverrides.get(paymentId);
       if (currentStatus === "완료") {
-        return;
+        return false;
       }
 
       setLoadingId(paymentId);
@@ -51,19 +58,21 @@ export function usePaymentStatus(
       setStatusOverrides((prev) => new Map(prev).set(paymentId, "완료"));
 
       try {
-        const result = await completeAction(paymentId);
+        const result = await completeAction(paymentId, details);
 
         if (result.success) {
           toast.success(TOAST_MESSAGES.paymentComplete);
           router.refresh();
-        } else {
-          setStatusOverrides((prev) => {
-            const next = new Map(prev);
-            next.delete(paymentId);
-            return next;
-          });
-          toast.error(getActionErrorMessage(result.message));
+          return true;
         }
+
+        setStatusOverrides((prev) => {
+          const next = new Map(prev);
+          next.delete(paymentId);
+          return next;
+        });
+        toast.error(getActionErrorMessage(result.message));
+        return false;
       } catch {
         setStatusOverrides((prev) => {
           const next = new Map(prev);
@@ -71,6 +80,7 @@ export function usePaymentStatus(
           return next;
         });
         toast.error(getActionErrorMessage());
+        return false;
       } finally {
         setLoadingId(null);
         setLoadingKind(null);

@@ -13,6 +13,7 @@ import {
   updateHomeMemo,
 } from "./helpers/test-data-fixture";
 import {
+  completePaymentViaDialog,
   expectSubmitWithFeedback,
   gotoAppPage,
   openFirstHomeDetail,
@@ -384,7 +385,7 @@ test.describe("authenticated payment complete", () => {
     }
 
     const pendingBefore = await page.getByRole("button", { name: "납부하기" }).count();
-    await expectSubmitWithFeedback(page, completeButton, "납부 완료했어요");
+    await completePaymentViaDialog(page, completeButton);
 
     await page.reload();
     await page.waitForLoadState("networkidle");
@@ -415,7 +416,7 @@ test.describe("authenticated payment complete", () => {
     }
 
     const pendingBefore = await page.getByRole("button", { name: "납부하기" }).count();
-    await expectSubmitWithFeedback(page, completeButton, "납부 완료했어요");
+    await completePaymentViaDialog(page, completeButton);
 
     await page.reload();
     await page.waitForLoadState("networkidle");

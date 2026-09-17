@@ -5,7 +5,17 @@ import { PaymentStatus, type ExpensePayment } from "@prisma/client";
 import { requireUser } from "@/lib/auth/user";
 import { prisma } from "@/lib/prisma";
 import { resolveViewYearMonth } from "@/lib/repositories/view-year-month";
-import { formatDateFromDb, getCurrentYearMonth } from "@/lib/utils/date";
+import {
+  formatDateFromDb,
+  getCurrentIsoDate,
+  getCurrentYearMonth,
+  parseIsoDateToDb,
+} from "@/lib/utils/date";
+import {
+  getPaymentCompletedAtIso,
+  normalizePaymentMemo,
+} from "@/lib/utils/payment-record";
+import type { CompletePaymentDetails } from "@/lib/types/homes";
 import { isYearMonthWithinContract } from "@/lib/utils/contract-status";
 import { isFutureYearMonth, parseYearMonthParam } from "@/lib/utils/year-month";
 import {
@@ -57,10 +67,12 @@ function toExpensePaymentListItem(
     amount: payment.amount,
     dueDay: payment.dueDay,
     status: PAYMENT_STATUS_LABEL[payment.status],
-    completedAt:
-      payment.status === PaymentStatus.COMPLETED
-        ? payment.updatedAt.toISOString()
-        : null,
+    completedAt: getPaymentCompletedAtIso(
+      payment.status,
+      payment.paidAt,
+      payment.updatedAt,
+    ),
+    memo: payment.memo,
     homeNickname: payment.home.nickname,
   };
 }
@@ -202,6 +214,7 @@ export async function getExpensesPageData(
 
 export async function completeExpensePayment(
   paymentId: string,
+  details?: CompletePaymentDetails,
 ): Promise<boolean> {
   const user = await requireUser();
 
@@ -216,9 +229,15 @@ export async function completeExpensePayment(
     return false;
   }
 
+  const paidAt = parseIsoDateToDb(details?.paidAt ?? getCurrentIsoDate());
+
   await prisma.expensePayment.update({
     where: { id: paymentId },
-    data: { status: PaymentStatus.COMPLETED },
+    data: {
+      status: PaymentStatus.COMPLETED,
+      paidAt,
+      memo: normalizePaymentMemo(details?.memo),
+    },
   });
 
   return true;
@@ -242,7 +261,11 @@ export async function uncompleteExpensePayment(
 
   await prisma.expensePayment.update({
     where: { id: paymentId },
-    data: { status: PaymentStatus.SCHEDULED },
+    data: {
+      status: PaymentStatus.SCHEDULED,
+      paidAt: null,
+      memo: null,
+    },
   });
 
   return true;

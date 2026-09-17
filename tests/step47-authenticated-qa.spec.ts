@@ -4,7 +4,7 @@ import {
   preparePendingMaintenancePaymentForTestUser,
   preparePendingRentPaymentForTestUser,
 } from "./helpers/test-data-fixture";
-import { expectSubmitWithFeedback, gotoAppPage } from "./helpers/ui";
+import { completePaymentViaDialog, expectSubmitWithFeedback, gotoAppPage } from "./helpers/ui";
 
 test.describe("STEP 47 payment cancel UI", () => {
   test("completed rent payment shows cancel button", async ({ page }) => {
@@ -36,7 +36,7 @@ test.describe("STEP 47 payment cancel UI", () => {
       test.skip(true, "No billable pending rent in UI");
     }
 
-    await expectSubmitWithFeedback(page, completeButton, "납부 완료했어요");
+    await completePaymentViaDialog(page, completeButton);
 
     const cancelButton = page.getByRole("button", { name: "납부 취소" }).first();
     await expect(cancelButton).toBeVisible();
@@ -65,7 +65,7 @@ test.describe("STEP 47 payment cancel UI", () => {
       test.skip(true, "No pending maintenance payment to complete");
     }
 
-    await expectSubmitWithFeedback(page, completeButton, "납부 완료했어요");
+    await completePaymentViaDialog(page, completeButton);
 
     const cancelButton = page.getByRole("button", { name: "납부 취소" }).first();
     await expectSubmitWithFeedback(page, cancelButton, "납부 취소했어요");
