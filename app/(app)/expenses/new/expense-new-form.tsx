@@ -9,6 +9,11 @@ import {
   type ExpenseEligibleHome,
 } from "@/lib/types/homes";
 import { TOAST_MESSAGES } from "@/lib/utils/toast-messages";
+import {
+  appendMonthQuery,
+  formatYearMonthLabel,
+  isCurrentYearMonth,
+} from "@/lib/utils/year-month";
 import { Button } from "@/components/ui/button";
 import { FormActions } from "@/components/ui/form-actions";
 import { FormSection } from "@/components/ui/form-section";
@@ -18,6 +23,7 @@ import { Select } from "@/components/ui/select";
 
 type ExpenseNewFormProps = {
   homes: ExpenseEligibleHome[];
+  yearMonth: string;
 };
 
 type FormErrors = {
@@ -27,7 +33,7 @@ type FormErrors = {
   dueDay?: string;
 };
 
-export function ExpenseNewForm({ homes }: ExpenseNewFormProps) {
+export function ExpenseNewForm({ homes, yearMonth }: ExpenseNewFormProps) {
   const router = useRouter();
   const toast = useToast();
   const [loading, setLoading] = useState(false);
@@ -48,11 +54,16 @@ export function ExpenseNewForm({ homes }: ExpenseNewFormProps) {
     }
 
     toast.success(TOAST_MESSAGES.saved);
-    router.push("/expenses");
+    router.push(appendMonthQuery("/expenses", yearMonth));
   }
+
+  const expenseMonthLabel = isCurrentYearMonth(yearMonth)
+    ? "이번 달"
+    : formatYearMonthLabel(yearMonth);
 
   return (
     <form onSubmit={handleSubmit} className="ui-form-page">
+      <input type="hidden" name="yearMonth" value={yearMonth} />
       <FormSection title="공과금 정보">
         <Select
           name="homeId"
@@ -93,7 +104,7 @@ export function ExpenseNewForm({ homes }: ExpenseNewFormProps) {
           placeholder="예: 10"
           required
           error={errors.dueDay}
-          helperText="이번 달 공과금으로 등록됩니다."
+          helperText={`${expenseMonthLabel} 공과금으로 등록됩니다.`}
         />
       </FormSection>
 
@@ -104,7 +115,7 @@ export function ExpenseNewForm({ homes }: ExpenseNewFormProps) {
         <Button
           type="button"
           variant="secondary"
-          onClick={() => router.push("/expenses")}
+          onClick={() => router.push(appendMonthQuery("/expenses", yearMonth))}
         >
           취소
         </Button>

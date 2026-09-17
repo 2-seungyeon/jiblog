@@ -5,7 +5,9 @@ import { PaymentStatus, type ExpensePayment } from "@prisma/client";
 import { requireUser } from "@/lib/auth/user";
 import { prisma } from "@/lib/prisma";
 import { resolveViewYearMonth } from "@/lib/repositories/view-year-month";
-import { getCurrentYearMonth } from "@/lib/utils/date";
+import { formatDateFromDb, getCurrentYearMonth } from "@/lib/utils/date";
+import { isYearMonthWithinContract } from "@/lib/utils/contract-status";
+import { isFutureYearMonth, parseYearMonthParam } from "@/lib/utils/year-month";
 import {
   EXPENSE_CATEGORY_LABEL,
   EXPENSE_CATEGORY_PRISMA,
@@ -21,7 +23,15 @@ import { devLoadingDelay } from "@/lib/utils/dev-loading-delay";
 
 export type CreateExpensePaymentResult =
   | { success: true; id: string }
-  | { success: false; code: "home_not_found" | "no_contract" | "duplicate" };
+  | {
+      success: false;
+      code:
+        | "home_not_found"
+        | "no_contract"
+        | "duplicate"
+        | "not_eligible"
+        | "future_month";
+    };
 
 type ExpensePaymentWithHome = ExpensePayment & {
   home: {
@@ -79,14 +89,20 @@ export async function createExpensePayment(
   input: CreateExpenseInput,
 ): Promise<CreateExpensePaymentResult> {
   const user = await requireUser();
-  const yearMonth = getCurrentYearMonth();
+  const yearMonth = input.yearMonth
+    ? parseYearMonthParam(input.yearMonth)
+    : getCurrentYearMonth();
   const category = EXPENSE_CATEGORY_PRISMA[input.category];
+
+  if (isFutureYearMonth(yearMonth)) {
+    return { success: false, code: "future_month" };
+  }
 
   const home = await prisma.home.findFirst({
     where: { id: input.homeId, userId: user.id },
     include: {
       contract: {
-        select: { id: true },
+        select: { id: true, startDate: true, endDate: true },
       },
     },
   });
@@ -97,6 +113,16 @@ export async function createExpensePayment(
 
   if (!home.contract) {
     return { success: false, code: "no_contract" };
+  }
+
+  if (
+    !isYearMonthWithinContract(
+      formatDateFromDb(home.contract.startDate),
+      formatDateFromDb(home.contract.endDate),
+      yearMonth,
+    )
+  ) {
+    return { success: false, code: "not_eligible" };
   }
 
   const existing = await prisma.expensePayment.findUnique({

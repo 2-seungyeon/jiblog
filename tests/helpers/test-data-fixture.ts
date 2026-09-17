@@ -102,11 +102,13 @@ export async function restoreContractMaintenanceFee(
   });
 }
 
-export async function findAvailableExpenseCategory(homeId: string): Promise<{
+export async function findAvailableExpenseCategory(
+  homeId: string,
+  yearMonth = getCurrentYearMonth(),
+): Promise<{
   category: ExpenseCategory;
   label: string;
 } | null> {
-  const yearMonth = getCurrentYearMonth();
   const existing = await prisma.expensePayment.findMany({
     where: { homeId, yearMonth },
     select: { category: true },

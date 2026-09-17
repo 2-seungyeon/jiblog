@@ -6,7 +6,11 @@ import { requireUser } from "@/lib/auth/user";
 import { prisma } from "@/lib/prisma";
 import { resolveViewYearMonth } from "@/lib/repositories/view-year-month";
 import { formatDateFromDb } from "@/lib/utils/date";
-import { isRentPaymentBillable } from "@/lib/utils/contract-status";
+import {
+  isContractEligibleForRentInMonth,
+  isRentPaymentBillable,
+} from "@/lib/utils/contract-status";
+import { isFutureYearMonth } from "@/lib/utils/year-month";
 import {
   CONTRACT_TYPE_LABEL,
   PAYMENT_STATUS_LABEL,
@@ -72,22 +76,73 @@ export async function getRentPageData(
     yearMonthParam,
   );
 
-  const payments = await prisma.rentPayment.findMany({
-    where: {
-      yearMonth,
-      home: { userId: user.id },
-    },
-    include: {
-      home: {
-        include: { contract: true },
+  const [payments, homesWithContract] = await Promise.all([
+    prisma.rentPayment.findMany({
+      where: {
+        yearMonth,
+        home: { userId: user.id },
       },
-    },
-    orderBy: { dueDay: "asc" },
-  });
+      include: {
+        home: {
+          include: { contract: true },
+        },
+      },
+      orderBy: { dueDay: "asc" },
+    }),
+    prisma.home.findMany({
+      where: {
+        userId: user.id,
+        contract: { isNot: null },
+      },
+      select: {
+        id: true,
+        nickname: true,
+        contract: {
+          select: {
+            type: true,
+            startDate: true,
+            endDate: true,
+            monthlyRent: true,
+          },
+        },
+      },
+      orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
+    }),
+  ]);
 
   const listItems = payments
     .map(toRentPaymentListItem)
     .filter((payment): payment is RentPaymentListItem => payment !== null);
+
+  const recordedHomeIds = new Set(payments.map((payment) => payment.homeId));
+  const missingRentHomes = homesWithContract.flatMap((home) => {
+    if (!home.contract || recordedHomeIds.has(home.id)) {
+      return [];
+    }
+
+    const startDate = formatDateFromDb(home.contract.startDate);
+    const endDate = formatDateFromDb(home.contract.endDate);
+
+    if (
+      !isContractEligibleForRentInMonth({
+        type: home.contract.type,
+        monthlyRent: home.contract.monthlyRent,
+        startDate,
+        endDate,
+        yearMonth,
+      })
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        homeId: home.id,
+        homeNickname: home.nickname,
+        monthlyRent: home.contract.monthlyRent,
+      },
+    ];
+  });
 
   const totalAmount = listItems.reduce(
     (sum, payment) => sum + payment.amount,
@@ -105,7 +160,91 @@ export async function getRentPageData(
     totalAmount,
     summaryStatus,
     payments: listItems,
+    missingRentHomes,
   };
+}
+
+export type CreateRentPaymentResult =
+  | { success: true; id: string }
+  | {
+      success: false;
+      code:
+        | "home_not_found"
+        | "no_contract"
+        | "not_eligible"
+        | "duplicate"
+        | "future_month";
+    };
+
+export async function createRentPaymentForMonth(
+  homeId: string,
+  yearMonth: string,
+): Promise<CreateRentPaymentResult> {
+  const user = await requireUser();
+
+  if (isFutureYearMonth(yearMonth)) {
+    return { success: false, code: "future_month" };
+  }
+
+  const home = await prisma.home.findFirst({
+    where: { id: homeId, userId: user.id },
+    include: {
+      contract: {
+        select: {
+          type: true,
+          startDate: true,
+          endDate: true,
+          monthlyRent: true,
+          rentDueDay: true,
+        },
+      },
+    },
+  });
+
+  if (!home) {
+    return { success: false, code: "home_not_found" };
+  }
+
+  if (!home.contract) {
+    return { success: false, code: "no_contract" };
+  }
+
+  const startDate = formatDateFromDb(home.contract.startDate);
+  const endDate = formatDateFromDb(home.contract.endDate);
+
+  if (
+    !isContractEligibleForRentInMonth({
+      type: home.contract.type,
+      monthlyRent: home.contract.monthlyRent,
+      startDate,
+      endDate,
+      yearMonth,
+    })
+  ) {
+    return { success: false, code: "not_eligible" };
+  }
+
+  const existing = await prisma.rentPayment.findUnique({
+    where: {
+      homeId_yearMonth: { homeId, yearMonth },
+    },
+  });
+
+  if (existing) {
+    return { success: false, code: "duplicate" };
+  }
+
+  const payment = await prisma.rentPayment.create({
+    data: {
+      homeId,
+      yearMonth,
+      amount: home.contract.monthlyRent,
+      dueDay: home.contract.rentDueDay,
+      status: PaymentStatus.SCHEDULED,
+    },
+  });
+
+  return { success: true, id: payment.id };
 }
 
 export async function completeRentPayment(paymentId: string): Promise<boolean> {

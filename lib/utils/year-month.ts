@@ -76,3 +76,10 @@ export function appendMonthQuery(path: string, yearMonth?: string | null): strin
   const separator = path.includes("?") ? "&" : "?";
   return `${path}${separator}month=${yearMonth}`;
 }
+
+export function isFutureYearMonth(
+  yearMonth: string,
+  reference: Date = new Date(),
+): boolean {
+  return yearMonth > getCurrentYearMonth(reference);
+}

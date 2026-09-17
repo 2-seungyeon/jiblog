@@ -28,7 +28,8 @@ export default async function RentPage({
   searchParams,
 }: PageProps<"/rent">) {
   const month = getMonthSearchParam((await searchParams).month);
-  const [{ payments }, overview, homes, maintenanceData] = await Promise.all([
+  const [{ payments, missingRentHomes }, overview, homes, maintenanceData] =
+    await Promise.all([
     getRentPageData(month),
     getPaymentOverview(month),
     getHomes(),
@@ -68,7 +69,12 @@ export default async function RentPage({
             overview={overview}
             footnote={maintenanceFootnote}
           />
-          <RentPaymentList payments={payments} />
+          <RentPaymentList
+            payments={payments}
+            yearMonth={overview.yearMonth}
+            isCurrentMonth={overview.isCurrentMonth}
+            missingRentHomes={missingRentHomes}
+          />
         </div>
       )}
     </div>

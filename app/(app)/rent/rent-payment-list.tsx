@@ -1,10 +1,15 @@
 "use client";
 
-import { completeRentPaymentAction } from "@/lib/actions/homes";
+import {
+  completeRentPaymentAction,
+  createRentPaymentAction,
+} from "@/lib/actions/homes";
 import { PaymentCategoryListPanel } from "@/components/payment/payment-category-list-panel";
 import { PaymentCompleteButton } from "@/components/payment/payment-complete-button";
+import { PaymentRecordAddButton } from "@/components/payment/payment-record-add-button";
 import { usePaymentComplete } from "@/hooks/use-payment-complete";
-import type { RentPaymentListItem } from "@/lib/types/homes";
+import type { MissingRentHome, RentPaymentListItem } from "@/lib/types/homes";
+import { formatWon } from "@/lib/utils/format";
 import {
   formatRentDueDateMeta,
   sortRentPayments,
@@ -15,20 +20,62 @@ import { getPaymentRowClassName } from "@/lib/utils/payment-row";
 
 type RentPaymentListProps = {
   payments: RentPaymentListItem[];
+  yearMonth: string;
+  isCurrentMonth: boolean;
+  missingRentHomes: MissingRentHome[];
 };
 
-export function RentPaymentList({ payments }: RentPaymentListProps) {
+export function RentPaymentList({
+  payments,
+  yearMonth,
+  isCurrentMonth,
+  missingRentHomes,
+}: RentPaymentListProps) {
   const { handleComplete, loadingId, getDisplayStatus } = usePaymentComplete(
     completeRentPaymentAction,
   );
   const sortedPayments = sortRentPayments(payments);
   const pendingCount = payments.filter((payment) => payment.status === "예정").length;
   const completedCount = payments.filter((payment) => payment.status === "완료").length;
+  const missingRentAppend =
+    !isCurrentMonth && missingRentHomes.length > 0 ? (
+      <>
+        <p className="text-sm font-medium text-text-primary">
+          계약상 월세 (미등록)
+        </p>
+        <ul className="space-y-2">
+          {missingRentHomes.map((home) => (
+            <li
+              key={home.homeId}
+              className="flex items-center justify-between gap-3 text-sm"
+            >
+              <div className="min-w-0">
+                <p className="text-text-secondary">{home.homeNickname}</p>
+                <p className="font-semibold tabular-nums text-text-primary">
+                  {formatWon(home.monthlyRent)}
+                </p>
+              </div>
+              <PaymentRecordAddButton
+                homeId={home.homeId}
+                yearMonth={yearMonth}
+                action={createRentPaymentAction}
+              />
+            </li>
+          ))}
+        </ul>
+      </>
+    ) : undefined;
 
   return (
     <PaymentCategoryListPanel
       title="월세 목록"
       summary={`예정 ${pendingCount} · 완료 ${completedCount}`}
+      emptyMessage={
+        sortedPayments.length === 0 && !missingRentAppend
+          ? "등록된 월세 납부 일정이 없어요."
+          : undefined
+      }
+      append={missingRentAppend}
     >
       {sortedPayments.map((payment) => {
         const displayStatus = getDisplayStatus(payment.id, payment.status);

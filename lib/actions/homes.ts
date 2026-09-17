@@ -11,7 +11,11 @@ import {
   completeExpensePayment as completeExpensePaymentInDb,
   createExpensePayment as createExpensePaymentInDb,
 } from "@/lib/repositories/expenses";
-import { completeRentPayment as completeRentPaymentInDb } from "@/lib/repositories/rent";
+import { createMaintenancePaymentForMonth as createMaintenancePaymentForMonthInDb } from "@/lib/repositories/maintenance";
+import {
+  completeRentPayment as completeRentPaymentInDb,
+  createRentPaymentForMonth as createRentPaymentForMonthInDb,
+} from "@/lib/repositories/rent";
 import { AuthError } from "@/lib/auth/user";
 import type {
   CompleteExpensePaymentResult,
@@ -23,6 +27,7 @@ import type {
   CreateExpenseResult,
   CreateHomeFieldErrors,
   CreateHomeResult,
+  CreatePaymentRecordResult,
   DeleteHomeResult,
   UpdateContractResult,
   UpdateHomeFieldErrors,
@@ -30,6 +35,7 @@ import type {
 } from "@/lib/types/homes";
 import { resolveContractDueDays } from "@/lib/utils/contract-due-day";
 import { isContractType, isExpenseCategory, isResidenceStatus } from "@/lib/utils/homes";
+import { formatYearMonthLabel, parseYearMonthParam } from "@/lib/utils/year-month";
 
 const AUTH_REQUIRED_MESSAGE = "로그인이 필요해요";
 
@@ -433,6 +439,82 @@ export async function completeRentPaymentAction(
   }
 }
 
+function mapCreatePaymentRecordError(
+  code:
+    | "home_not_found"
+    | "no_contract"
+    | "not_eligible"
+    | "duplicate"
+    | "future_month",
+): string {
+  switch (code) {
+    case "duplicate":
+      return "이미 등록된 납부 기록이에요";
+    case "not_eligible":
+      return "해당 월에는 계약 기간에 포함되지 않아요";
+    case "future_month":
+      return "아직 오지 않은 달은 등록할 수 없어요";
+    case "no_contract":
+      return "계약이 등록된 집만 선택할 수 있어요";
+    default:
+      return "집 정보를 찾을 수 없어요";
+  }
+}
+
+export async function createRentPaymentAction(
+  homeId: string,
+  yearMonth: string,
+): Promise<CreatePaymentRecordResult> {
+  const id = homeId.trim();
+  const month = parseYearMonthParam(yearMonth);
+
+  if (!id) {
+    return { success: false, message: "집 정보를 찾을 수 없어요" };
+  }
+
+  try {
+    const created = await createRentPaymentForMonthInDb(id, month);
+
+    if (!created.success) {
+      return { success: false, message: mapCreatePaymentRecordError(created.code) };
+    }
+
+    return { success: true };
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return { success: false, message: AUTH_REQUIRED_MESSAGE };
+    }
+    throw error;
+  }
+}
+
+export async function createMaintenancePaymentAction(
+  homeId: string,
+  yearMonth: string,
+): Promise<CreatePaymentRecordResult> {
+  const id = homeId.trim();
+  const month = parseYearMonthParam(yearMonth);
+
+  if (!id) {
+    return { success: false, message: "집 정보를 찾을 수 없어요" };
+  }
+
+  try {
+    const created = await createMaintenancePaymentForMonthInDb(id, month);
+
+    if (!created.success) {
+      return { success: false, message: mapCreatePaymentRecordError(created.code) };
+    }
+
+    return { success: true };
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return { success: false, message: AUTH_REQUIRED_MESSAGE };
+    }
+    throw error;
+  }
+}
+
 export async function createExpenseAction(
   formData: FormData,
 ): Promise<CreateExpenseResult> {
@@ -440,6 +522,8 @@ export async function createExpenseAction(
   const category = String(formData.get("category") ?? "").trim();
   const amountValue = String(formData.get("amount") ?? "").trim();
   const dueDayValue = String(formData.get("dueDay") ?? "").trim();
+  const yearMonthRaw = String(formData.get("yearMonth") ?? "").trim();
+  const yearMonth = yearMonthRaw ? parseYearMonthParam(yearMonthRaw) : undefined;
 
   const errors: CreateExpenseFieldErrors = {};
 
@@ -481,13 +565,30 @@ export async function createExpenseAction(
       category,
       amount,
       dueDay,
+      yearMonth,
     });
 
     if (!created.success) {
+      const monthLabel = yearMonth ? formatYearMonthLabel(yearMonth) : "이번 달";
+
       if (created.code === "duplicate") {
         return {
           success: false,
-          errors: { category: "이번 달에 이미 등록된 공과금 항목입니다." },
+          errors: { category: `${monthLabel}에 이미 등록된 공과금 항목입니다.` },
+        };
+      }
+
+      if (created.code === "not_eligible") {
+        return {
+          success: false,
+          errors: { homeId: "해당 월에는 계약 기간에 포함되지 않아요" },
+        };
+      }
+
+      if (created.code === "future_month") {
+        return {
+          success: false,
+          errors: { dueDay: "아직 오지 않은 달은 등록할 수 없어요" },
         };
       }
 

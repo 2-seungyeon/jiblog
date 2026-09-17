@@ -16,7 +16,7 @@ import {
   sumContractMaintenanceFees,
 } from "@/lib/utils/payment-overview-display";
 import { getExpensesPageDescription } from "@/lib/utils/payment-page-copy";
-import { getMonthSearchParam } from "@/lib/utils/year-month";
+import { appendMonthQuery, getMonthSearchParam } from "@/lib/utils/year-month";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +47,7 @@ export default async function ExpensesPage({
         description={getExpensesPageDescription(overview.yearMonth)}
         action={
           !isEmpty && canAddExpense ? (
-            <Link href="/expenses/new">
+            <Link href={appendMonthQuery("/expenses/new", overview.yearMonth)}>
               <Button type="button" variant="secondary" className="w-full md:w-auto">
                 공과금 추가
               </Button>
@@ -86,7 +86,7 @@ export default async function ExpensesPage({
               emptyMessage="등록된 공과금이 없어요."
               footer={
                 canAddExpense ? (
-                  <Link href="/expenses/new">
+                  <Link href={appendMonthQuery("/expenses/new", overview.yearMonth)}>
                     <Button type="button" className="w-full md:w-auto">
                       공과금 추가
                     </Button>

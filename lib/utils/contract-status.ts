@@ -1,3 +1,4 @@
+import { getYearMonthFromString } from "@/lib/utils/date";
 import { calculateDDay, formatDDay } from "@/lib/utils/homes";
 
 export type ContractExpiryStatus =
@@ -71,6 +72,66 @@ export function isContractEligibleForMaintenance(options: {
   }
 
   return getContractExpiryStatus(options.endDate) !== "expired";
+}
+
+function toYearMonthKey(year: number, month: number): number {
+  return year * 12 + month;
+}
+
+function parseContractYearMonth(date: string): { year: number; month: number } {
+  const normalized = normalizeContractEndDate(date);
+  const [year, month] = normalized.split(".").map(Number);
+  return { year, month };
+}
+
+export function isYearMonthWithinContract(
+  startDate: string,
+  endDate: string,
+  yearMonth: string,
+): boolean {
+  const { year, month } = getYearMonthFromString(yearMonth);
+  const targetKey = toYearMonthKey(year, month);
+  const start = parseContractYearMonth(startDate);
+  const end = parseContractYearMonth(endDate);
+  const startKey = toYearMonthKey(start.year, start.month);
+  const endKey = toYearMonthKey(end.year, end.month);
+
+  return targetKey >= startKey && targetKey <= endKey;
+}
+
+export function isContractEligibleForRentInMonth(options: {
+  type: string;
+  monthlyRent: number;
+  startDate: string;
+  endDate: string;
+  yearMonth: string;
+}): boolean {
+  if (!isMonthlyContractType(options.type) || options.monthlyRent <= 0) {
+    return false;
+  }
+
+  return isYearMonthWithinContract(
+    options.startDate,
+    options.endDate,
+    options.yearMonth,
+  );
+}
+
+export function isContractEligibleForMaintenanceInMonth(options: {
+  maintenanceFee: number;
+  startDate: string;
+  endDate: string;
+  yearMonth: string;
+}): boolean {
+  if (options.maintenanceFee <= 0) {
+    return false;
+  }
+
+  return isYearMonthWithinContract(
+    options.startDate,
+    options.endDate,
+    options.yearMonth,
+  );
 }
 
 export function isRentPaymentBillable(options: {

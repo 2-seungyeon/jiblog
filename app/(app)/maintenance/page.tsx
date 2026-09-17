@@ -78,6 +78,8 @@ export default async function MaintenancePage({
           <MaintenancePaymentList
             payments={maintenanceData.payments}
             contractFees={maintenanceData.contractFees}
+            yearMonth={overview.yearMonth}
+            isCurrentMonth={overview.isCurrentMonth}
           />
         </div>
       )}

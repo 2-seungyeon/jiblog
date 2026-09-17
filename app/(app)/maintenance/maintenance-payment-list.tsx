@@ -1,6 +1,10 @@
 "use client";
 
-import { completeExpensePaymentAction } from "@/lib/actions/homes";
+import {
+  completeExpensePaymentAction,
+  createMaintenancePaymentAction,
+} from "@/lib/actions/homes";
+import { PaymentRecordAddButton } from "@/components/payment/payment-record-add-button";
 import { PaymentCategoryListPanel } from "@/components/payment/payment-category-list-panel";
 import { PaymentCompleteButton } from "@/components/payment/payment-complete-button";
 import { usePaymentComplete } from "@/hooks/use-payment-complete";
@@ -21,11 +25,15 @@ type MaintenancePaymentListProps = {
     homeNickname: string;
     maintenanceFee: number;
   }>;
+  yearMonth: string;
+  isCurrentMonth: boolean;
 };
 
 export function MaintenancePaymentList({
   payments,
   contractFees,
+  yearMonth,
+  isCurrentMonth,
 }: MaintenancePaymentListProps) {
   const { handleComplete, loadingId, getDisplayStatus } = usePaymentComplete(
     completeExpensePaymentAction,
@@ -46,16 +54,27 @@ export function MaintenancePaymentList({
               key={home.homeId}
               className="flex items-center justify-between gap-3 text-sm"
             >
-              <span className="text-text-secondary">{home.homeNickname}</span>
-              <span className="font-semibold tabular-nums text-text-primary">
-                {formatWon(home.maintenanceFee)}
-              </span>
+              <div className="min-w-0">
+                <p className="text-text-secondary">{home.homeNickname}</p>
+                <p className="font-semibold tabular-nums text-text-primary">
+                  {formatWon(home.maintenanceFee)}
+                </p>
+              </div>
+              {!isCurrentMonth ? (
+                <PaymentRecordAddButton
+                  homeId={home.homeId}
+                  yearMonth={yearMonth}
+                  action={createMaintenancePaymentAction}
+                />
+              ) : null}
             </li>
           ))}
         </ul>
-        <p className="text-sm text-text-secondary">
-          공과금 등록에서 관리비 항목을 추가하면 납부 일정을 관리할 수 있어요.
-        </p>
+        {isCurrentMonth ? (
+          <p className="text-sm text-text-secondary">
+            이번 달 관리비는 계약 등록 시 자동으로 추가돼요.
+          </p>
+        ) : null}
       </>
     ) : undefined;
 

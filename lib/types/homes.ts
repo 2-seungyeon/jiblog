@@ -148,11 +148,18 @@ export type RentPaymentListItem = RentPayment & {
   contractType: ContractType;
 };
 
+export type MissingRentHome = {
+  homeId: string;
+  homeNickname: string;
+  monthlyRent: number;
+};
+
 export type RentPageData = {
   yearMonthLabel: string;
   totalAmount: number;
   summaryStatus: "납부 예정" | "납부 완료";
   payments: RentPaymentListItem[];
+  missingRentHomes: MissingRentHome[];
 };
 
 export type CompleteRentPaymentResult =
@@ -214,7 +221,12 @@ export type CreateExpenseInput = {
   category: ExpenseCategory;
   amount: number;
   dueDay: number;
+  yearMonth?: string;
 };
+
+export type CreatePaymentRecordResult =
+  | { success: true }
+  | { success: false; message: string };
 
 export type CreateExpenseFieldErrors = {
   homeId?: string;

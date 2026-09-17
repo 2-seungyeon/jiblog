@@ -5,6 +5,10 @@ import { ExpenseCategory, PaymentStatus } from "@prisma/client";
 import { requireUser } from "@/lib/auth/user";
 import { prisma } from "@/lib/prisma";
 import { resolveViewYearMonth } from "@/lib/repositories/view-year-month";
+import type { CreateExpensePaymentResult } from "@/lib/repositories/expenses";
+import { formatDateFromDb } from "@/lib/utils/date";
+import { isContractEligibleForMaintenanceInMonth } from "@/lib/utils/contract-status";
+import { isFutureYearMonth } from "@/lib/utils/year-month";
 import {
   EXPENSE_CATEGORY_LABEL,
   PAYMENT_STATUS_LABEL,
@@ -54,7 +58,13 @@ export async function getMaintenancePageData(
       select: {
         id: true,
         nickname: true,
-        contract: { select: { maintenanceFee: true } },
+        contract: {
+          select: {
+            maintenanceFee: true,
+            startDate: true,
+            endDate: true,
+          },
+        },
       },
       orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
     }),
@@ -78,18 +88,33 @@ export async function getMaintenancePageData(
     })) as ExpensePaymentListItem[];
 
   const paidHomeIds = new Set(listItems.map((p) => p.homeId));
-  const contractFees = homesWithContract
-    .filter(
-      (home) =>
-        home.contract &&
-        home.contract.maintenanceFee > 0 &&
-        !paidHomeIds.has(home.id),
-    )
-    .map((home) => ({
-      homeId: home.id,
-      homeNickname: home.nickname,
-      maintenanceFee: home.contract!.maintenanceFee,
-    }));
+  const contractFees = homesWithContract.flatMap((home) => {
+    if (!home.contract || paidHomeIds.has(home.id)) {
+      return [];
+    }
+
+    const startDate = formatDateFromDb(home.contract.startDate);
+    const endDate = formatDateFromDb(home.contract.endDate);
+
+    if (
+      !isContractEligibleForMaintenanceInMonth({
+        maintenanceFee: home.contract.maintenanceFee,
+        startDate,
+        endDate,
+        yearMonth,
+      })
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        homeId: home.id,
+        homeNickname: home.nickname,
+        maintenanceFee: home.contract.maintenanceFee,
+      },
+    ];
+  });
 
   const totalAmount = listItems.reduce((sum, p) => sum + p.amount, 0);
   const summaryStatus =
@@ -104,4 +129,78 @@ export async function getMaintenancePageData(
     payments: listItems,
     contractFees,
   };
+}
+
+export async function createMaintenancePaymentForMonth(
+  homeId: string,
+  yearMonth: string,
+): Promise<CreateExpensePaymentResult> {
+  const user = await requireUser();
+
+  if (isFutureYearMonth(yearMonth)) {
+    return { success: false, code: "future_month" };
+  }
+
+  const home = await prisma.home.findFirst({
+    where: { id: homeId, userId: user.id },
+    include: {
+      contract: {
+        select: {
+          maintenanceFee: true,
+          maintenanceDueDay: true,
+          startDate: true,
+          endDate: true,
+        },
+      },
+    },
+  });
+
+  if (!home) {
+    return { success: false, code: "home_not_found" };
+  }
+
+  if (!home.contract) {
+    return { success: false, code: "no_contract" };
+  }
+
+  const startDate = formatDateFromDb(home.contract.startDate);
+  const endDate = formatDateFromDb(home.contract.endDate);
+
+  if (
+    !isContractEligibleForMaintenanceInMonth({
+      maintenanceFee: home.contract.maintenanceFee,
+      startDate,
+      endDate,
+      yearMonth,
+    })
+  ) {
+    return { success: false, code: "not_eligible" };
+  }
+
+  const existing = await prisma.expensePayment.findUnique({
+    where: {
+      homeId_yearMonth_category: {
+        homeId,
+        yearMonth,
+        category: ExpenseCategory.MAINTENANCE,
+      },
+    },
+  });
+
+  if (existing) {
+    return { success: false, code: "duplicate" };
+  }
+
+  const payment = await prisma.expensePayment.create({
+    data: {
+      homeId,
+      yearMonth,
+      category: ExpenseCategory.MAINTENANCE,
+      amount: home.contract.maintenanceFee,
+      dueDay: home.contract.maintenanceDueDay,
+      status: PaymentStatus.SCHEDULED,
+    },
+  });
+
+  return { success: true, id: payment.id };
 }

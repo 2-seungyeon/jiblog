@@ -6,6 +6,13 @@ import { FormPageShell } from "@/components/ui/form-page-shell";
 import { getExpenseEligibleHomes } from "@/lib/repositories/expenses";
 import { getHomes } from "@/lib/repositories/homes";
 import { getOnboardingStep } from "@/lib/utils/onboarding";
+import {
+  appendMonthQuery,
+  formatYearMonthLabel,
+  getMonthSearchParam,
+  isCurrentYearMonth,
+  parseYearMonthParam,
+} from "@/lib/utils/year-month";
 
 export const dynamic = "force-dynamic";
 
@@ -63,23 +70,30 @@ function NoContractEmptyState({
   );
 }
 
-export default async function ExpenseNewPage() {
+export default async function ExpenseNewPage({
+  searchParams,
+}: PageProps<"/expenses/new">) {
+  const month = getMonthSearchParam((await searchParams).month);
+  const yearMonth = parseYearMonthParam(month);
   const [homes, eligibleHomes] = await Promise.all([
     getHomes(),
     getExpenseEligibleHomes(),
   ]);
   const onboarding = getOnboardingStep(homes);
   const hasEligibleHomes = eligibleHomes.length > 0;
+  const description = isCurrentYearMonth(yearMonth)
+    ? "이번 달 공과금 납부 항목을 등록하세요."
+    : `${formatYearMonthLabel(yearMonth)} 공과금 납부 항목을 등록하세요.`;
 
   return (
     <FormPageShell
-      backHref="/expenses"
+      backHref={appendMonthQuery("/expenses", yearMonth)}
       backLabel="← 공과금"
       title="공과금 추가"
-      description="이번 달 공과금 납부 항목을 등록하세요."
+      description={description}
     >
       {hasEligibleHomes ? (
-        <ExpenseNewForm homes={eligibleHomes} />
+        <ExpenseNewForm homes={eligibleHomes} yearMonth={yearMonth} />
       ) : (
         <NoContractEmptyState
           step={onboarding.step}
