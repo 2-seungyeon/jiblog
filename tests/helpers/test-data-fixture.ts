@@ -148,7 +148,7 @@ export async function createDisposableTestHome(): Promise<string | null> {
   const home = await prisma.home.create({
     data: {
       userId,
-      nickname: "E2E 삭제 테스트",
+      nickname: `E2E 삭제 테스트 ${Date.now()}`,
       address: "서울시 테스트구 E2E동",
       residenceStatus: ResidenceStatus.RESIDING,
       isPrimary: false,
@@ -326,31 +326,14 @@ export async function restoreMaintenancePaymentSnapshot(
 }
 
 export async function preparePendingRentPaymentForTestUser(): Promise<string | null> {
-  const userId = await getTestUserId();
+  const home = await getPrimaryHomeForTestUser();
 
-  if (!userId) {
+  if (!home) {
     return null;
   }
 
-  const yearMonth = getCurrentYearMonth();
-  const payment = await prisma.rentPayment.findFirst({
-    where: {
-      yearMonth,
-      home: { userId },
-    },
-    orderBy: { dueDay: "asc" },
-  });
-
-  if (!payment) {
-    return null;
-  }
-
-  await prisma.rentPayment.update({
-    where: { id: payment.id },
-    data: { status: PaymentStatus.SCHEDULED },
-  });
-
-  return payment.id;
+  const snapshot = await preparePendingRentPaymentForHome(home.id);
+  return snapshot?.id ?? null;
 }
 
 export async function preparePendingUtilityPaymentForTestUser(): Promise<string | null> {
@@ -376,39 +359,25 @@ export async function preparePendingUtilityPaymentForTestUser(): Promise<string 
 
   await prisma.expensePayment.update({
     where: { id: payment.id },
-    data: { status: PaymentStatus.SCHEDULED },
+    data: {
+      status: PaymentStatus.SCHEDULED,
+      paidAt: null,
+      memo: null,
+    },
   });
 
   return payment.id;
 }
 
 export async function preparePendingMaintenancePaymentForTestUser(): Promise<string | null> {
-  const userId = await getTestUserId();
+  const home = await getPrimaryHomeForTestUser();
 
-  if (!userId) {
+  if (!home) {
     return null;
   }
 
-  const yearMonth = getCurrentYearMonth();
-  const payment = await prisma.expensePayment.findFirst({
-    where: {
-      yearMonth,
-      category: ExpenseCategory.MAINTENANCE,
-      home: { userId },
-    },
-    orderBy: { dueDay: "asc" },
-  });
-
-  if (!payment) {
-    return null;
-  }
-
-  await prisma.expensePayment.update({
-    where: { id: payment.id },
-    data: { status: PaymentStatus.SCHEDULED },
-  });
-
-  return payment.id;
+  const snapshot = await preparePendingMaintenancePaymentForHome(home.id);
+  return snapshot?.id ?? null;
 }
 
 export async function disconnectTestDataFixture(): Promise<void> {

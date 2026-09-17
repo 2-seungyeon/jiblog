@@ -42,8 +42,7 @@ test.describe("STEP 47 payment cancel UI", () => {
     await expect(cancelButton).toBeVisible();
     await expectSubmitWithFeedback(page, cancelButton, "납부 취소했어요");
 
-    await page.reload();
-    await page.waitForLoadState("networkidle");
+    await gotoAppPage(page, "/rent");
     await expect(page.getByRole("button", { name: "납부하기" }).first()).toBeVisible();
   });
 
@@ -70,8 +69,7 @@ test.describe("STEP 47 payment cancel UI", () => {
     const cancelButton = page.getByRole("button", { name: "납부 취소" }).first();
     await expectSubmitWithFeedback(page, cancelButton, "납부 취소했어요");
 
-    await page.reload();
-    await page.waitForLoadState("networkidle");
+    await gotoAppPage(page, "/maintenance");
     await expect(page.getByRole("button", { name: "납부하기" }).first()).toBeVisible();
   });
 });

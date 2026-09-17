@@ -27,11 +27,21 @@ test.describe("STEP 48 complete payment details helpers", () => {
 
 test.describe("STEP 48 payment complete dialog UI", () => {
   test("opens dialog from rent payment list", async ({ page }) => {
+    if (!allowMutations()) {
+      test.skip(true, "Set PLAYWRIGHT_ALLOW_MUTATIONS=1 to run mutation tests");
+    }
+
+    const rentPaymentId = await preparePendingRentPaymentForTestUser();
+
+    if (!rentPaymentId) {
+      test.skip(true, "No rent payment record to prepare for this account");
+    }
+
     await gotoAppPage(page, "/rent");
 
     const openButton = page.getByRole("button", { name: "납부하기" }).first();
     if ((await openButton.count()) === 0) {
-      test.skip(true, "No pending rent payment in UI");
+      test.skip(true, "No billable pending rent in UI");
     }
 
     await openButton.click();

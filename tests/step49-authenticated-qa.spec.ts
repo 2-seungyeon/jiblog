@@ -18,7 +18,7 @@ test.describe("STEP 49 duplicate home nickname", () => {
 
     await gotoAppPage(page, "/homes/new");
     await page.getByLabel("별칭").fill(primaryHome!.nickname);
-    await page.getByLabel("주소").fill("서울시 테스트구 테스트로 1");
+    await page.getByRole("textbox", { name: "주소 *" }).fill("서울시 테스트구 테스트로 1");
     await page.getByRole("button", { name: "등록하기" }).click();
 
     await expect(
