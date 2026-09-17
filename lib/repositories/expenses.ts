@@ -4,8 +4,8 @@ import { PaymentStatus, type ExpensePayment } from "@prisma/client";
 
 import { requireUser } from "@/lib/auth/user";
 import { prisma } from "@/lib/prisma";
-import { ensureCurrentMonthRentPayments } from "@/lib/repositories/ensure-current-month-rent";
-import { getCurrentYearMonth, getCurrentYearMonthLabel } from "@/lib/utils/date";
+import { resolveViewYearMonth } from "@/lib/repositories/view-year-month";
+import { getCurrentYearMonth } from "@/lib/utils/date";
 import {
   EXPENSE_CATEGORY_LABEL,
   EXPENSE_CATEGORY_PRISMA,
@@ -127,11 +127,15 @@ export async function createExpensePayment(
   return { success: true, id: payment.id };
 }
 
-export async function getExpensesPageData(): Promise<ExpensesPageData> {
+export async function getExpensesPageData(
+  yearMonthParam?: string | null,
+): Promise<ExpensesPageData> {
   await devLoadingDelay();
   const user = await requireUser();
-  const yearMonth = await ensureCurrentMonthRentPayments(user.id);
-  const yearMonthLabel = getCurrentYearMonthLabel();
+  const { yearMonth, yearMonthLabel } = await resolveViewYearMonth(
+    user.id,
+    yearMonthParam,
+  );
 
   const payments = await prisma.expensePayment.findMany({
     where: {

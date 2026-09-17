@@ -23,6 +23,7 @@ import {
 } from "@/lib/utils/contract-status";
 import { getDashboardData } from "@/lib/repositories/dashboard";
 import { getMaintenanceOverviewFootnote } from "@/lib/utils/payment-overview-display";
+import { getMonthSearchParam } from "@/lib/utils/year-month";
 
 export const dynamic = "force-dynamic";
 
@@ -83,7 +84,9 @@ function EmptyPanel({
 
 function toPaymentOverview(summary: MonthlySummary): PaymentOverview {
   return {
-    yearMonthLabel: summary.yearMonth,
+    yearMonth: summary.yearMonth,
+    yearMonthLabel: summary.yearMonthLabel,
+    isCurrentMonth: summary.isCurrentMonth,
     totalAmount: summary.total,
     rentAmount: summary.rentAmount,
     maintenanceAmount: summary.maintenanceAmount,
@@ -251,8 +254,11 @@ function ContractPanel({
   );
 }
 
-export default async function DashboardPage() {
-  const data = await getDashboardData();
+export default async function DashboardPage({
+  searchParams,
+}: PageProps<"/dashboard">) {
+  const month = getMonthSearchParam((await searchParams).month);
+  const data = await getDashboardData(month);
   const greeting = getGreeting(
     data.userName,
     data.state,

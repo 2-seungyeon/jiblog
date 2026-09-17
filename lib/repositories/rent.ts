@@ -4,8 +4,8 @@ import { ContractType, PaymentStatus, type RentPayment } from "@prisma/client";
 
 import { requireUser } from "@/lib/auth/user";
 import { prisma } from "@/lib/prisma";
-import { ensureCurrentMonthRentPayments } from "@/lib/repositories/ensure-current-month-rent";
-import { formatDateFromDb, getCurrentYearMonthLabel } from "@/lib/utils/date";
+import { resolveViewYearMonth } from "@/lib/repositories/view-year-month";
+import { formatDateFromDb } from "@/lib/utils/date";
 import { isRentPaymentBillable } from "@/lib/utils/contract-status";
 import {
   CONTRACT_TYPE_LABEL,
@@ -62,11 +62,15 @@ function toRentPaymentListItem(
   };
 }
 
-export async function getRentPageData(): Promise<RentPageData> {
+export async function getRentPageData(
+  yearMonthParam?: string | null,
+): Promise<RentPageData> {
   await devLoadingDelay();
   const user = await requireUser();
-  const yearMonth = await ensureCurrentMonthRentPayments(user.id);
-  const yearMonthLabel = getCurrentYearMonthLabel();
+  const { yearMonth, yearMonthLabel } = await resolveViewYearMonth(
+    user.id,
+    yearMonthParam,
+  );
 
   const payments = await prisma.rentPayment.findMany({
     where: {

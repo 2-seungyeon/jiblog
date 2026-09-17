@@ -4,8 +4,8 @@ import { ExpenseCategory as PrismaExpenseCategory } from "@prisma/client";
 
 import { requireUser } from "@/lib/auth/user";
 import { prisma } from "@/lib/prisma";
-import { ensureCurrentMonthRentPayments } from "@/lib/repositories/ensure-current-month-rent";
-import { formatDateFromDb, getCurrentYearMonthLabel } from "@/lib/utils/date";
+import { resolveViewYearMonth } from "@/lib/repositories/view-year-month";
+import { formatDateFromDb } from "@/lib/utils/date";
 import { isRentPaymentBillable } from "@/lib/utils/contract-status";
 import {
   CONTRACT_TYPE_LABEL,
@@ -17,7 +17,9 @@ import { devLoadingDelay } from "@/lib/utils/dev-loading-delay";
 import type { ExpensePaymentListItem } from "@/lib/types/homes";
 
 export type PaymentOverview = {
+  yearMonth: string;
   yearMonthLabel: string;
+  isCurrentMonth: boolean;
   totalAmount: number;
   rentAmount: number;
   maintenanceAmount: number;
@@ -62,11 +64,15 @@ function toExpenseListItem(
   };
 }
 
-export async function getPaymentOverview(): Promise<PaymentOverview> {
+export async function getPaymentOverview(
+  yearMonthParam?: string | null,
+): Promise<PaymentOverview> {
   await devLoadingDelay();
   const user = await requireUser();
-  const yearMonth = await ensureCurrentMonthRentPayments(user.id);
-  const yearMonthLabel = getCurrentYearMonthLabel();
+  const { yearMonth, yearMonthLabel, isCurrentMonth } = await resolveViewYearMonth(
+    user.id,
+    yearMonthParam,
+  );
 
   const [rentPayments, expensePayments] = await Promise.all([
     prisma.rentPayment.findMany({
@@ -103,7 +109,9 @@ export async function getPaymentOverview(): Promise<PaymentOverview> {
   ];
 
   return {
+    yearMonth,
     yearMonthLabel,
+    isCurrentMonth,
     totalAmount: rentAmount + maintenanceAmount + utilityAmount,
     rentAmount,
     maintenanceAmount,

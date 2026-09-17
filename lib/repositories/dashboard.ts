@@ -13,7 +13,7 @@ import {
   requireUser,
 } from "@/lib/auth/user";
 import { prisma } from "@/lib/prisma";
-import { ensureCurrentMonthRentPayments } from "@/lib/repositories/ensure-current-month-rent";
+import { resolveViewYearMonth } from "@/lib/repositories/view-year-month";
 import type {
   Contract as DashboardContract,
   DashboardData,
@@ -24,7 +24,6 @@ import {
   formatDueDateLabel,
   formatRelativeDueDay,
   formatDateFromDb,
-  getCurrentYearMonthLabel,
   getKSTToday,
 } from "@/lib/utils/date";
 import { isScheduledPaymentOverdue } from "@/lib/utils/payment-overdue";
@@ -164,12 +163,16 @@ function isEligibleExpensePayment(payment: ExpensePaymentWithHome): boolean {
   return Boolean(payment.home.contract);
 }
 
-export async function getDashboardData(): Promise<DashboardData> {
+export async function getDashboardData(
+  yearMonthParam?: string | null,
+): Promise<DashboardData> {
   await devLoadingDelay();
   const user = await requireUser();
   const userName = getDisplayName(user);
-  const yearMonth = await ensureCurrentMonthRentPayments(user.id);
-  const yearMonthLabel = getCurrentYearMonthLabel();
+  const { yearMonth, yearMonthLabel, isCurrentMonth } = await resolveViewYearMonth(
+    user.id,
+    yearMonthParam,
+  );
   const primaryHome = await getPrimaryHomeWithRelations(user.id, yearMonth);
 
   if (!primaryHome) {
@@ -247,7 +250,9 @@ export async function getDashboardData(): Promise<DashboardData> {
   ).length;
 
   const monthlySummary = {
-    yearMonth: yearMonthLabel,
+    yearMonth,
+    yearMonthLabel,
+    isCurrentMonth,
     total,
     rentAmount,
     maintenanceAmount,

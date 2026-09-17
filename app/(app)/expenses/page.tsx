@@ -15,17 +15,22 @@ import {
   getMaintenanceOverviewFootnote,
   sumContractMaintenanceFees,
 } from "@/lib/utils/payment-overview-display";
+import { getExpensesPageDescription } from "@/lib/utils/payment-page-copy";
+import { getMonthSearchParam } from "@/lib/utils/year-month";
 
 export const dynamic = "force-dynamic";
 
-export default async function ExpensesPage() {
+export default async function ExpensesPage({
+  searchParams,
+}: PageProps<"/expenses">) {
+  const month = getMonthSearchParam((await searchParams).month);
   const [{ payments }, overview, homes, eligibleHomes, maintenanceData] =
     await Promise.all([
-      getExpensesPageData(),
-      getPaymentOverview(),
+      getExpensesPageData(month),
+      getPaymentOverview(month),
       getHomes(),
       getExpenseEligibleHomes(),
-      getMaintenancePageData(),
+      getMaintenancePageData(month),
     ]);
   const maintenanceFootnote = getMaintenanceOverviewFootnote(
     overview.maintenanceAmount,
@@ -39,7 +44,7 @@ export default async function ExpensesPage() {
     <div className="ui-page">
       <PageHeader
         title="납부"
-        description="전기·가스·수도 등 공과금 납부 현황"
+        description={getExpensesPageDescription(overview.yearMonth)}
         action={
           !isEmpty && canAddExpense ? (
             <Link href="/expenses/new">

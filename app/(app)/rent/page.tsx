@@ -16,15 +16,23 @@ import {
   resolveRentEmptyReason,
 } from "@/lib/utils/contract-display-status";
 import { getOnboardingStep } from "@/lib/utils/onboarding";
+import {
+  getRentPageDescription,
+  shouldShowRentOnboardingEmpty,
+} from "@/lib/utils/payment-page-copy";
+import { getMonthSearchParam } from "@/lib/utils/year-month";
 
 export const dynamic = "force-dynamic";
 
-export default async function RentPage() {
+export default async function RentPage({
+  searchParams,
+}: PageProps<"/rent">) {
+  const month = getMonthSearchParam((await searchParams).month);
   const [{ payments }, overview, homes, maintenanceData] = await Promise.all([
-    getRentPageData(),
-    getPaymentOverview(),
+    getRentPageData(month),
+    getPaymentOverview(month),
     getHomes(),
-    getMaintenancePageData(),
+    getMaintenancePageData(month),
   ]);
   const maintenanceFootnote = getMaintenanceOverviewFootnote(
     overview.maintenanceAmount,
@@ -33,17 +41,21 @@ export default async function RentPage() {
   const onboarding = getOnboardingStep(homes);
   const emptyReason = resolveRentEmptyReason(homes, payments.length);
   const expiredHome = findExpiredMonthlyHome(homes);
+  const showOnboardingEmpty = shouldShowRentOnboardingEmpty(
+    emptyReason,
+    overview.isCurrentMonth,
+  );
 
   return (
     <div className="ui-page">
       <PageHeader
         title="납부"
-        description="이번 달 월세 납부 현황"
+        description={getRentPageDescription(overview.yearMonth)}
       />
 
       <PaymentSectionNav />
 
-      {emptyReason ? (
+      {showOnboardingEmpty && emptyReason ? (
         <RentEmptyState
           reason={emptyReason}
           primaryHomeId={onboarding.primaryHomeId}

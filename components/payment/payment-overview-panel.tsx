@@ -1,6 +1,8 @@
+import { PaymentPeriodNavigator } from "@/components/payment/payment-period-navigator";
 import { Panel } from "@/components/ui/panel";
 import type { PaymentOverview } from "@/lib/repositories/payment-overview";
 import { formatWon } from "@/lib/utils/format";
+import { getPaymentPeriodSubtitle } from "@/lib/utils/year-month";
 
 type PaymentOverviewPanelProps = {
   overview: PaymentOverview;
@@ -25,8 +27,11 @@ export function PaymentOverviewPanel({
 
   return (
     <Panel>
-      <p className="ui-period-label">{overview.yearMonthLabel}</p>
-      <p className="mt-1 text-base text-text-secondary">이번 달 주거비</p>
+      <PaymentPeriodNavigator yearMonth={overview.yearMonth} />
+      <p className="ui-period-label mt-2">{overview.yearMonthLabel}</p>
+      <p className="mt-1 text-base text-text-secondary">
+        {getPaymentPeriodSubtitle(overview.yearMonth)}
+      </p>
       <p className="ui-summary-total mt-2">{formatWon(overview.totalAmount)}</p>
 
       <div

@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Suspense } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { isCurrentYearMonth } from "@/lib/utils/year-month";
 
 const tabs = [
   { href: "/rent", label: "월세", match: (path: string) => path === "/rent" || path.startsWith("/rent/") },
@@ -19,8 +21,12 @@ const tabs = [
   },
 ] as const;
 
-export function PaymentSectionNav() {
+function PaymentSectionNavInner() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const month = searchParams.get("month");
+  const monthQuery =
+    month && !isCurrentYearMonth(month) ? `?month=${month}` : "";
 
   return (
     <nav aria-label="납부 구분" className="ui-payment-section-nav">
@@ -31,7 +37,7 @@ export function PaymentSectionNav() {
           return (
             <Link
               key={tab.href}
-              href={tab.href}
+              href={`${tab.href}${monthQuery}`}
               aria-current={active ? "page" : undefined}
               className={
                 active
@@ -45,5 +51,19 @@ export function PaymentSectionNav() {
         })}
       </div>
     </nav>
+  );
+}
+
+export function PaymentSectionNav() {
+  return (
+    <Suspense
+      fallback={
+        <nav aria-label="납부 구분" className="ui-payment-section-nav">
+          <div className="ui-payment-tab-group" />
+        </nav>
+      }
+    >
+      <PaymentSectionNavInner />
+    </Suspense>
   );
 }

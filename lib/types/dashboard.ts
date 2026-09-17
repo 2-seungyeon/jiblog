@@ -20,6 +20,8 @@ export type Contract = {
 
 export type MonthlySummary = {
   yearMonth: string;
+  yearMonthLabel: string;
+  isCurrentMonth: boolean;
   total: number;
   rentAmount: number;
   maintenanceAmount: number;

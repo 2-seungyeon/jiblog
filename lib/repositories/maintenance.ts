@@ -4,8 +4,7 @@ import { ExpenseCategory, PaymentStatus } from "@prisma/client";
 
 import { requireUser } from "@/lib/auth/user";
 import { prisma } from "@/lib/prisma";
-import { ensureCurrentMonthRentPayments } from "@/lib/repositories/ensure-current-month-rent";
-import { getCurrentYearMonthLabel } from "@/lib/utils/date";
+import { resolveViewYearMonth } from "@/lib/repositories/view-year-month";
 import {
   EXPENSE_CATEGORY_LABEL,
   PAYMENT_STATUS_LABEL,
@@ -25,11 +24,15 @@ export type MaintenancePageData = {
   }>;
 };
 
-export async function getMaintenancePageData(): Promise<MaintenancePageData> {
+export async function getMaintenancePageData(
+  yearMonthParam?: string | null,
+): Promise<MaintenancePageData> {
   await devLoadingDelay();
   const user = await requireUser();
-  const yearMonth = await ensureCurrentMonthRentPayments(user.id);
-  const yearMonthLabel = getCurrentYearMonthLabel();
+  const { yearMonth, yearMonthLabel } = await resolveViewYearMonth(
+    user.id,
+    yearMonthParam,
+  );
 
   const [payments, homesWithContract] = await Promise.all([
     prisma.expensePayment.findMany({

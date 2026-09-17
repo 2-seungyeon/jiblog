@@ -11,13 +11,18 @@ import {
   getMaintenanceOverviewFootnote,
   sumContractMaintenanceFees,
 } from "@/lib/utils/payment-overview-display";
+import { getMaintenancePageDescription } from "@/lib/utils/payment-page-copy";
+import { getMonthSearchParam } from "@/lib/utils/year-month";
 
 export const dynamic = "force-dynamic";
 
-export default async function MaintenancePage() {
+export default async function MaintenancePage({
+  searchParams,
+}: PageProps<"/maintenance">) {
+  const month = getMonthSearchParam((await searchParams).month);
   const [maintenanceData, overview, homes] = await Promise.all([
-    getMaintenancePageData(),
-    getPaymentOverview(),
+    getMaintenancePageData(month),
+    getPaymentOverview(month),
     getHomes(),
   ]);
   const onboarding = getOnboardingStep(homes);
@@ -35,7 +40,7 @@ export default async function MaintenancePage() {
     <div className="ui-page">
       <PageHeader
         title="납부"
-        description="이번 달 관리비 납부 현황"
+        description={getMaintenancePageDescription(overview.yearMonth)}
       />
 
       <PaymentSectionNav />
