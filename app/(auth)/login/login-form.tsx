@@ -32,7 +32,7 @@ export function LoginForm() {
         </p>
       </div>
 
-      <form action={formAction} method="post" className="space-y-4">
+      <form action={formAction} className="space-y-4">
         <Input
           name="email"
           label="이메일"
