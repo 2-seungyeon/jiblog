@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "집로그",
-  description: "자취생을 위한 주거 생활 관리 서비스",
+  description: "1인 가구를 위한 주거비 관리 서비스",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
